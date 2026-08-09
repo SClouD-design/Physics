@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trợ lý tích hợp Năng lực số vào giáo án</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+  :root{
+    --paper:#F4F6F7; --card:#FFFFFF; --ink:#1E2A31; --muted:#5C6B74; --line:#DBE3E5;
+    --teal:#0E7C6B; --teal-d:#0A5F52; --teal-bg:#E6F2EF; --indigo:#38486A;
+    --amber:#D98A1F; --amber-bg:#FBEFD7; --amber-line:#EBC98A; --danger:#B23A48; --danger-bg:#FBEAEC;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:'Be Vietnam Pro',system-ui,-apple-system,sans-serif;
+    background:var(--paper); color:var(--ink); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  code,.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+  a{color:var(--teal-d)}
+
+  header.top{
+    position:sticky; top:0; z-index:20; background:rgba(244,246,247,.86);
+    backdrop-filter:saturate(180%) blur(8px); border-bottom:1px solid var(--line);
+  }
+  .top-in{max-width:940px; margin:0 auto; padding:14px 22px; display:flex; align-items:center; gap:14px}
+  .mark{
+    width:38px;height:38px;border-radius:10px;flex:none;
+    background:linear-gradient(135deg,var(--teal),var(--indigo));
+    display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;letter-spacing:.5px;
+  }
+  .top h1{font-size:17px;margin:0;font-weight:700;letter-spacing:-.2px}
+  .top p{margin:1px 0 0;font-size:12.5px;color:var(--muted)}
+  .top .spacer{flex:1}
+  .pill{font-size:12px;color:var(--teal-d);background:var(--teal-bg);border:1px solid #CBE4DD;
+    padding:4px 10px;border-radius:999px;font-weight:600;white-space:nowrap}
+
+  main{max-width:940px; margin:0 auto; padding:26px 22px 80px}
+  .lead{font-size:14.5px;color:var(--muted);max-width:70ch;margin:2px 0 26px}
+  .lead b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:22px 22px; margin:0 0 18px; box-shadow:0 1px 0 rgba(30,42,49,.03)}
+  .ey{display:flex;align-items:center;gap:11px;margin:0 0 4px}
+  .num{width:26px;height:26px;border-radius:8px;flex:none;background:var(--ink);color:#fff;
+    font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;display:grid;place-items:center}
+  .card h2{font-size:16.5px;margin:0;font-weight:700;letter-spacing:-.2px}
+  .hint{font-size:13px;color:var(--muted);margin:2px 0 16px 37px}
+
+  label.fld{display:block;font-size:13px;font-weight:600;margin:0 0 6px;color:var(--ink)}
+  input[type=text],input[type=password],select,textarea{
+    width:100%;font-family:inherit;font-size:14px;color:var(--ink);background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;transition:border .15s,box-shadow .15s}
+  input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-bg)}
+  textarea{resize:vertical;line-height:1.55}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:180px}
+  .mini{font-size:12px;color:var(--muted);margin-top:6px}
+
+  .btn{font-family:inherit;font-weight:600;font-size:14px;border:1px solid transparent;border-radius:10px;
+    padding:11px 18px;cursor:pointer;transition:transform .06s,background .15s,box-shadow .15s;display:inline-flex;
+    align-items:center;gap:9px;justify-content:center}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:hover{background:var(--teal-d)}
+  .btn-primary:disabled{background:#9CBEB7;cursor:not-allowed}
+  .btn-ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:#B9C6C9;background:#FAFBFB}
+  .btn-amber{background:var(--amber);color:#fff}
+  .btn-amber:hover{filter:brightness(.95)}
+  .btn-block{width:100%}
+  .btn-lg{padding:14px 22px;font-size:15px}
+
+  details.guide{border:1px dashed var(--amber-line);background:var(--amber-bg);border-radius:12px;padding:2px 14px;margin:0 0 16px}
+  details.guide>summary{cursor:pointer;font-weight:600;font-size:13.5px;color:#8a5b12;padding:11px 2px;list-style:none;display:flex;gap:8px;align-items:center}
+  details.guide>summary::-webkit-details-marker{display:none}
+  details.guide[open]>summary{border-bottom:1px dashed var(--amber-line);margin-bottom:8px}
+  details.guide ol{margin:4px 0 12px;padding-left:20px;font-size:13.5px}
+  details.guide li{margin:5px 0}
+  .kbd{background:#fff;border:1px solid var(--amber-line);border-radius:6px;padding:1px 6px;font-family:'JetBrains Mono',monospace;font-size:12px}
+
+  .tabs{display:flex;gap:6px;margin:0 0 14px}
+  .tab{font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;color:var(--muted);cursor:pointer}
+  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  .drop{border:1.5px dashed #BCCBCE;border-radius:12px;background:#FAFCFC;padding:26px;text-align:center;cursor:pointer;transition:.15s}
+  .drop:hover,.drop.hot{border-color:var(--teal);background:var(--teal-bg)}
+  .drop .big{font-weight:600;font-size:14.5px}
+  .drop .sm{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .filechip{display:none;align-items:center;gap:10px;margin-top:12px;font-size:13px;background:var(--teal-bg);
+    border:1px solid #CBE4DD;border-radius:10px;padding:9px 12px}
+  .filechip b{color:var(--teal-d)}
+
+  .preview-doc{border:1px solid var(--line);border-radius:10px;background:#fff;padding:18px 20px;max-height:320px;
+    overflow:auto;font-size:13.5px}
+  .preview-doc:empty{display:none}
+  .preview-doc table{border-collapse:collapse;width:100%;margin:8px 0}
+  .preview-doc td,.preview-doc th{border:1px solid #cfd8da;padding:6px 8px;vertical-align:top;font-size:12.5px}
+  .preview-doc h1,.preview-doc h2,.preview-doc h3{font-size:14.5px;margin:12px 0 4px}
+  .preview-doc img{max-width:100%;height:auto}
+
+  /* Output */
+  #outWrap{display:none}
+  .out-doc{border:1px solid var(--line);border-radius:10px;background:#fff;padding:22px 24px;max-height:560px;overflow:auto;font-size:13.5px}
+  .out-doc table{border-collapse:collapse;width:100%;margin:10px 0}
+  .out-doc td,.out-doc th{border:1px solid #cfd8da;padding:7px 9px;vertical-align:top}
+  .out-doc h1,.out-doc h2,.out-doc h3{margin:14px 0 6px}
+  .out-doc img{max-width:100%;height:auto}
+  .nls-tag{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.92em}
+  body.hl .nls-tag{background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:5px;padding:0 5px;color:#8a5b12}
+  body.hl .nls-added{background:#FFF7E9;box-shadow:inset 2px 0 0 var(--amber)}
+  .out-doc .nls-added{padding-left:4px}
+
+  .expl{border:1px solid var(--line);border-radius:10px;background:#FCFDFD;padding:18px 20px;max-height:560px;overflow:auto;font-size:13.5px}
+  .expl h3{margin:12px 0 6px;font-size:14.5px}
+  .expl table{border-collapse:collapse;width:100%;margin:8px 0}
+  .expl td,.expl th{border:1px solid #dbe3e5;padding:6px 9px;font-size:12.5px;text-align:left;vertical-align:top}
+  .expl th{background:#F1F5F5}
+  .expl code{background:#EEF3F3;border-radius:5px;padding:1px 5px}
+
+  .status{display:none;align-items:center;gap:12px;font-size:13.5px;color:var(--muted);margin-top:14px}
+  .spin{width:18px;height:18px;border:2.5px solid #D6E1E0;border-top-color:var(--teal);border-radius:50%;animation:sp 0.8s linear infinite;flex:none}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .alert{display:none;font-size:13.5px;border-radius:10px;padding:12px 14px;margin-top:14px;
+    background:var(--danger-bg);border:1px solid #E9C3C8;color:#7d2933}
+  .alert b{color:#7d2933}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+  .toolbar .spacer{flex:1}
+  .chk{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer;user-select:none}
+  .chk input{width:16px;height:16px;accent-color:var(--teal)}
+
+  /* Reference drawer */
+  .ref summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;gap:10px}
+  .ref summary::-webkit-details-marker{display:none}
+  .ref summary .chev{transition:.2s;color:var(--muted)}
+  .ref[open] summary .chev{transform:rotate(90deg)}
+  .mien{border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin:12px 0 0;background:#fff}
+  .mien h4{margin:0 0 7px;font-size:13.5px;display:flex;align-items:center;gap:9px}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .ntps{display:flex;flex-wrap:wrap;gap:6px}
+  .ntp{font-size:12px;background:#F3F6F6;border:1px solid var(--line);border-radius:7px;padding:3px 9px;color:var(--muted)}
+  .scheme{background:#F7FAF9;border:1px solid #D9E7E3;border-radius:11px;padding:14px 16px;font-size:13px;margin:14px 0 0}
+  .scheme .mono{color:var(--teal-d);font-weight:600}
+  .lvltag{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:12px;padding:1px 7px;border-radius:6px;background:var(--teal-bg);color:var(--teal-d);border:1px solid #CBE4DD}
+
+  footer{max-width:940px;margin:0 auto;padding:0 22px 40px;font-size:12px;color:var(--muted)}
+  @media (max-width:640px){
+    main{padding:20px 16px 70px} .top-in{padding:12px 16px} .card{padding:18px 16px}
+    .hint{margin-left:0}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  .ntpb{border-top:1px solid var(--line);padding:9px 0 3px}
+  .ntpn{font-weight:600;font-size:12.5px;margin-bottom:6px;color:var(--ink)}
+  .lvlpair{display:flex;gap:12px;flex-wrap:wrap}
+  .lvlcol{flex:1;min-width:230px}
+  .lvh{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--teal-d);background:var(--teal-bg);border:1px solid #CBE4DD;border-radius:5px;padding:1px 6px;margin-bottom:5px}
+  .cd{font-size:12px;color:var(--muted);margin:2px 0;line-height:1.45}
+  .cd b{font-family:'JetBrains Mono',monospace;color:var(--ink);font-size:11.5px}
+  .brand-logo{height:46px;width:auto;flex:none;display:block}
+  .author{text-align:right;line-height:1.25;flex:none}
+  .author-name{font-weight:700;font-size:13.5px;color:var(--ink)}
+  .author-phone{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:1px}
+  @media (max-width:640px){ .brand-logo{height:36px} .author-name{font-size:12px} .author-phone{font-size:11px} .top-in{flex-wrap:wrap;row-gap:8px} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <img class="brand-logo" src="data:image/png;base64,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" alt="Logo Việt Nhật">
+    <div class="brand-txt">
+      <h1>Trợ lý tích hợp Năng lực số vào giáo án</h1>
+      <p>Đưa giáo án vào · AI cài năng lực số theo Khung NLS (TT&nbsp;02/2025) · tải về file Word</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="author">
+      <div class="author-name">Thầy Mạc Như Tiên</div>
+      <div class="author-phone">SĐT: 0773200392</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <p class="lead">Công cụ chạy hoàn toàn trên máy bạn. Bạn dán hoặc tải lên một <b>giáo án chưa tích hợp năng lực số</b>, chọn khối, rồi để AI cài các mã năng lực số vào <b>đúng từng hoạt động</b> theo khung 5512 — cùng phần <b>giải thích rõ những gì đã thêm</b>. Cuối cùng tải về file Word.</p>
+
+  <!-- STEP 1: KEY -->
+  <section class="card">
+    <div class="ey"><span class="num">1</span><h2>Kết nối API Gemini</h2><span class="pill" id="keyState" style="margin-left:auto">Chưa có API key</span></div>
+    <p class="hint">Bạn dùng API key Gemini của riêng mình. Key chỉ nằm trên máy này và chỉ gửi thẳng tới Google — không lưu ở đâu khác.</p>
+
+    <details class="guide">
+      <summary>▸ Cách lấy API key Gemini miễn phí (mất ~1 phút)</summary>
+      <ol>
+        <li>Mở <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> và đăng nhập tài khoản Google.</li>
+        <li>Bấm <span class="kbd">Create API key</span> (hoặc <span class="kbd">Get API key</span>).</li>
+        <li>Chọn/ tạo một dự án khi được hỏi, rồi bấm tạo key.</li>
+        <li>Sao chép chuỗi key (bắt đầu bằng <span class="kbd">AIza…</span>).</li>
+        <li>Dán vào ô bên dưới. Gói miễn phí đủ để thử nghiệm (có giới hạn số lượt/phút).</li>
+      </ol>
+    </details>
+
+    <div class="row">
+      <div style="flex:2">
+        <label class="fld" for="apiKey">API key</label>
+        <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+        <div class="mini">
+          <label class="chk"><input type="checkbox" id="remember"> Ghi nhớ key trên máy này</label>
+          &nbsp;·&nbsp;<a href="#" id="clearKey">Xóa key đã lưu</a>
+        </div>
+      </div>
+      <div>
+        <label class="fld" for="model">Model</label>
+        <select id="model">
+          <option value="gemini-2.5-flash">gemini-2.5-flash (khuyến nghị, có gói miễn phí)</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro (mạnh hơn, chậm hơn)</option>
+          <option value="gemini-3-flash-preview">gemini-3-flash-preview (mới)</option>
+          <option value="gemini-flash-latest">gemini-flash-latest</option>
+        </select>
+        <div class="mini">Nếu báo lỗi model không tồn tại, hãy chọn model khác.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: INPUT -->
+  <section class="card">
+    <div class="ey"><span class="num">2</span><h2>Đưa giáo án vào</h2></div>
+    <p class="hint">Tải file Word (.docx) hoặc dán trực tiếp nội dung giáo án gốc. Giữ nguyên cấu trúc bài để AI cài đúng chỗ.</p>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="upload">Tải file .docx</button>
+      <button class="tab" data-tab="paste">Dán văn bản</button>
+    </div>
+
+    <div id="tab-upload">
+      <div class="drop" id="drop">
+        <div class="big">Kéo–thả file .docx vào đây hoặc bấm để chọn</div>
+        <div class="sm">Đọc trực tiếp trong trình duyệt, không tải file lên máy chủ nào</div>
+        <input type="file" id="file" accept=".docx" hidden>
+      </div>
+      <div class="filechip" id="fileChip"><span>📄</span><b id="fileName"></b><span id="fileMeta" style="color:var(--muted)"></span></div>
+    </div>
+
+    <div id="tab-paste" style="display:none">
+      <label class="fld" for="pasteBox">Nội dung giáo án</label>
+      <textarea id="pasteBox" rows="10" placeholder="Dán toàn bộ nội dung giáo án gốc vào đây..."></textarea>
+    </div>
+
+    <div style="margin-top:14px">
+      <label class="fld">Xem trước nội dung đã nhận</label>
+      <div class="preview-doc" id="inPreview"></div>
+      <div class="mini" id="inMeta"></div>
+    </div>
+  </section>
+
+  <!-- STEP 3: OPTIONS -->
+  <section class="card">
+    <div class="ey"><span class="num">3</span><h2>Chọn cấp học</h2></div>
+    <p class="hint">Bạn chỉ cần chọn cấp học — công cụ tự nhận diện môn và tự cài <b>tất cả năng lực số phù hợp</b> vào toàn bộ giáo án. THCS dùng mã <span class="mono">TC2</span> (Bậc 4), THPT dùng mã <span class="mono">NC1</span> (Bậc 5).</p>
+    <div class="row">
+      <div style="max-width:340px">
+        <label class="fld" for="khoi">Cấp học</label>
+        <select id="khoi">
+          <option value="THPT">THPT (lớp 10–12)</option>
+          <option value="THCS">THCS (lớp 6–9)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:18px">
+      <button class="btn btn-primary btn-lg btn-block" id="run">Tích hợp năng lực số vào giáo án</button>
+    </div>
+    <div class="status" id="status"><span class="spin"></span><span id="statusText">Đang xử lý…</span></div>
+    <div class="alert" id="alert"></div>
+  </section>
+
+  <!-- OUTPUT -->
+  <section class="card" id="outWrap">
+    <div class="ey"><span class="num">✓</span><h2>Kết quả</h2></div>
+
+    <div class="tabs" style="margin-top:8px">
+      <button class="tab on" data-otab="doc">Giáo án đã tích hợp</button>
+      <button class="tab" data-otab="expl">AI đã thêm gì?</button>
+    </div>
+
+    <div id="otab-doc">
+      <div class="toolbar">
+        <label class="chk"><input type="checkbox" id="hlToggle" checked> Tô sáng phần năng lực số</label>
+        <div class="spacer"></div>
+        <label class="chk"><input type="checkbox" id="hlInWord"> Giữ tô sáng trong file Word</label>
+        <button class="btn btn-amber" id="download">⬇ Tải về file Word</button>
+      </div>
+      <div class="out-doc" id="outDoc"></div>
+    </div>
+
+    <div id="otab-expl" style="display:none">
+      <div class="expl" id="outExpl"></div>
+    </div>
+  </section>
+
+  <!-- REFERENCE -->
+  <section class="card">
+    <details class="ref">
+      <summary><span class="chev">▸</span> Khung Năng lực số dùng trong công cụ (tham khảo)</summary>
+      <div class="scheme">
+        <div><b>Cách đọc mã:</b> <span class="mono">[Miền].[Năng lực thành phần][Trình độ][Bậc][a/b/c…]</span></div>
+        <div style="margin-top:8px">Trình độ: <span class="lvltag">CB</span> Cơ bản (Tiểu học) &nbsp; <span class="lvltag">TC</span> Trung cấp (THCS) &nbsp; <span class="lvltag">NC</span> Nâng cao (THPT) &nbsp; <span class="lvltag">CS</span> Chuyên sâu (CĐ–ĐH)</div>
+        <div style="margin-top:8px">Ví dụ <span class="mono">1.1.NC1b</span> = Miền 1 › NL 1.1 (tìm kiếm & lọc) › Nâng cao/Bậc 5 › mô tả b = “Áp dụng kỹ thuật tìm kiếm để lấy dữ liệu, thông tin, nội dung số”.</div>
+      </div>
+      <div id="refMien"></div>
+    </details>
+  </section>
+</main>
+
+<footer>
+  Công cụ hỗ trợ soạn giáo án theo Chương trình GDPT 2018 và Khung năng lực số cho người học (Thông tư 02/2025/TT-BGDĐT). AI có thể sai sót — giáo viên cần rà soát trước khi sử dụng.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Dữ liệu Khung NLS (hiển thị + nhắc AI) ---------- */
+  var MIEN = [
+    {id:1, ten:"Khai thác dữ liệu và thông tin", mau:"#0E7C6B",
+     ntp:["1.1 Duyệt, tìm kiếm & lọc","1.2 Đánh giá dữ liệu/thông tin","1.3 Quản lý dữ liệu/thông tin"]},
+    {id:2, ten:"Giao tiếp và hợp tác", mau:"#2E7DA6",
+     ntp:["2.1 Tương tác","2.2 Chia sẻ","2.3 Trách nhiệm công dân số","2.4 Hợp tác","2.5 Ứng xử trên mạng","2.6 Quản lý danh tính số"]},
+    {id:3, ten:"Sáng tạo nội dung số", mau:"#7A57B8",
+     ntp:["3.1 Phát triển nội dung","3.2 Tích hợp & tái tạo","3.3 Bản quyền & giấy phép","3.4 Lập trình"]},
+    {id:4, ten:"An toàn", mau:"#B85C38",
+     ntp:["4.1 Bảo vệ thiết bị","4.2 Dữ liệu cá nhân & quyền riêng tư","4.3 Sức khỏe & an sinh số","4.4 Bảo vệ môi trường"]},
+    {id:5, ten:"Giải quyết vấn đề", mau:"#C08A1E",
+     ntp:["5.1 Vấn đề kỹ thuật","5.2 Nhu cầu & giải pháp công nghệ","5.3 Sử dụng sáng tạo","5.4 Tự cải thiện NLS"]},
+    {id:6, ten:"Ứng dụng trí tuệ nhân tạo (AI)", mau:"#2E9E82",
+     ntp:["6.1 Hiểu biết về AI","6.2 Sử dụng AI","6.3 Đánh giá AI"]}
+  ];
+
+  var NLS_DATA = [{"code": "1.1", "mien": 1, "name": "Duyệt, tìm kiếm và lọc dữ liệu, thông tin và nội dung số", "tc2": [["a", "Minh họa được nhu cầu thông tin."], ["b", "Tổ chức được tìm kiếm dữ liệu, thông tin và nội dung trong môi trường số."], ["c", "Mô tả được cách truy cập những dữ liệu, thông tin và nội dung này cũng như điều hướng giữa chúng."], ["d", "Tổ chức được các chiến lược tìm kiếm."]], "nc1": [["a", "Đáp ứng được nhu cầu thông tin."], ["b", "Áp dụng được kỹ thuật tìm kiếm để lấy được dữ liệu, thông tin và nội dung trong môi trường số."], ["c", "Chỉ cho người khác cách truy cập những dữ liệu, thông tin và nội dung này cũng như điều hướng giữa chúng."], ["d", "Tự đề xuất được chiến lược tìm kiếm."]]}, {"code": "1.2", "mien": 1, "name": "Đánh giá dữ liệu, thông tin và nội dung số", "tc2": [["a", "Thực hiện phân tích, so sánh và đánh giá được các nguồn dữ liệu, thông tin và nội dung số."], ["b", "Thực hiện phân tích, diễn giải và đánh giá được dữ liệu, thông tin và nội dung số."]], "nc1": [["a", "Thực hiện đánh giá được độ tin cậy và độ tin cậy của các nguồn dữ liệu, thông tin và nội dung số."], ["b", "Tiến hành đánh giá được các dữ liệu, thông tin và nội dung số khác nhau."]]}, {"code": "1.3", "mien": 1, "name": "Quản lý dữ liệu, thông tin và nội dung số", "tc2": [["a", "Sắp xếp được thông tin, dữ liệu, nội dung để dễ dàng lưu trữ và truy xuất."], ["b", "Tổ chức được thông tin, dữ liệu và nội dung trong một môi trường có cấu trúc."]], "nc1": [["a", "Thao tác được thông tin, dữ liệu và nội dung để tổ chức, lưu trữ và truy xuất dễ dàng hơn."], ["b", "Triển khai được việc tổ chức và sắp xếp dữ liệu, thông tin và nội dung trong môi trường có cấu trúc."]]}, {"code": "2.1", "mien": 2, "name": "Tương tác thông qua công nghệ số", "tc2": [["a", "Lựa chọn được nhiều công nghệ số để tương tác."], ["b", "Lựa chọn được nhiều phương tiện truyền thông số cho phù hợp với bối cảnh nhất định."]], "nc1": [["a", "Sử dụng được nhiều công nghệ số để tương tác."], ["b", "Cho người khác thấy phương tiện giao tiếp số phù hợp nhất cho một bối cảnh cụ thể."]]}, {"code": "2.2", "mien": 2, "name": "Chia sẻ thông tin và nội dung thông qua công nghệ số", "tc2": [["a", "Vận dụng được các công nghệ số phù hợp để chia sẻ dữ liệu, thông tin và nội dung số."], ["b", "Giải thích được cách đóng vai trò trung gian để chia sẻ thông tin và nội dung thông qua công nghệ số."], ["c", "Áp dụng được các phương pháp tham chiếu và ghi chú nguồn."]], "nc1": [["a", "Chia sẻ dữ liệu, thông tin và nội dung số thông qua nhiều công cụ số phù hợp."], ["b", "Hướng dẫn người khác cách đóng vai trò trung gian để chia sẻ thông tin và nội dung thông qua công nghệ số."], ["c", "Áp dụng được nhiều phương pháp tham chiếu và ghi nguồn khác nhau."]]}, {"code": "2.3", "mien": 2, "name": "Sử dụng công nghệ số để thực hiện trách nhiệm công dân", "tc2": [["a", "Lựa chọn được các dịch vụ số để tham gia vào xã hội."], ["b", "Thảo luận về các công nghệ số phù hợp để nâng cao năng lực của bản thân và tham gia vào xã hội với tư cách là một công."]], "nc1": [["a", "Đề xuất được các dịch vụ số khác nhau để tham gia vào xã hội."], ["b", "Sử dụng được các công nghệ số thích hợp để tự mình trang bị và tham gia vào xã hội như một công dân."]]}, {"code": "2.4", "mien": 2, "name": "Hợp tác thông qua công nghệ số", "tc2": [["a", "Lựa chọn được các công cụ và công nghệ số cho các quá trình hợp tác."]], "nc1": [["a", "Đề xuất được các công cụ và công nghệ số khác nhau cho các quá trình hợp tác."]]}, {"code": "2.5", "mien": 2, "name": "Quy tắc ứng xử trên mạng", "tc2": [["a", "Thảo luận về các chuẩn mực hành vi và cách sử dụng công nghệ số và tương tác trong môi trường số."], ["b", "Thảo luận các chiến lược giao tiếp phù hợp trong môi trường số."], ["c", "Thảo luận các khía cạnh đa dạng về văn hóa và thế hệ cần xem xét trong môi trường số."]], "nc1": [["a", "Áp dụng được các chuẩn mực hành vi và bí quyết khác nhau khi sử dụng công nghệ số và tương tác trong môi trường số."], ["b", "Áp dụng được các chiến lược giao tiếp khác nhau trong môi trường số một cách phù hợp."], ["c", "Áp dụng được các khía cạnh đa dạng về văn hóa và thế hệ khác nhau để xem xét trong môi trường số."]]}, {"code": "2.6", "mien": 2, "name": "Quản lý danh tính số", "tc2": [["a", "Hiển thị được nhiều danh tính số cụ thể."], ["b", "Thảo luận những cách cụ thể để bảo vệ danh tiếng trực tuyến của bản thân."], ["c", "Thao tác dữ liệu cá nhân tạo ra thông qua các công cụ, môi trường hoặc dịch vụ số."]], "nc1": [["a", "Sử dụng được nhiều danh tính số khác nhau."], ["b", "Áp dụng được các cách khác nhau để bảo vệ danh tính trực tuyến của bản thân."], ["c", "Sử dụng được dữ liệu tạo ra thông qua công cụ, môi trường và một số dịch vụ số."]]}, {"code": "3.1", "mien": 3, "name": "Phát triển nội dung số", "tc2": [["a", "Chỉ ra được cách tạo và chỉnh sửa nội dung ở các định dạng khác nhau."], ["b", "Thể hiện được bản thân thông qua việc tạo ra các nội dung số."]], "nc1": [["a", "Áp dụng được các cách tạo và chỉnh sửa nội dung ở các định dạng khác nhau."], ["b", "Chỉ ra được những cách thể hiện bản thân thông qua việc tạo ra các nội dung số."]]}, {"code": "3.2", "mien": 3, "name": "Tích hợp và tạo lập lại nội dung số", "tc2": [["a", "Thảo luận các cách sửa đổi, tinh chỉnh, cải thiện và tích hợp nội dung và thông tin mới để tạo ra những nội dung và thông tin mới và độc đáo."]], "nc1": [["a", "Làm việc với các mục nội dung và thông tin mới khác nhau, sửa đổi, tinh chỉnh, cải thiện và tích hợp chúng để tạo ra những mục mới và độc đáo."]]}, {"code": "3.3", "mien": 3, "name": "Thực thi bản quyền và giấy phép", "tc2": [["a", "Thảo luận các quy tắc về bản quyền và giấy phép áp dụng cho thông tin và nội dung số."]], "nc1": [["a", "Áp dụng được các quy định khác nhau về bản quyền và giấy phép cho dữ liệu, thông tin và nội dung số."]]}, {"code": "3.4", "mien": 3, "name": "Lập trình", "tc2": [["a", "Liệt kê được các hướng dẫn cho một hệ thống máy tính để giải quyết một vấn đề nhất định hoặc thực hiện một nhiệm vụ cụ thể."]], "nc1": [["a", "Tự thao tác được bằng các hướng dẫn dành cho hệ thống máy tính để giải quyết một vấn đề khác hoặc thực hiện các nhiệm vụ khác nhau."]]}, {"code": "4.1", "mien": 4, "name": "Bảo vệ thiết bị", "tc2": [["a", "Thiết lập được những cách thức bảo vệ thiết bị và nội dung số."], ["b", "Phân biệt được rủi ro và mối đe dọa trong môi trường số."], ["c", "Chọn lựa được các biện pháp an toàn và bảo mật."], ["d", "Giải thích được các cách thức để quan tâm đến mức độ tin cậy và quyền riêng tư."]], "nc1": [["a", "Áp dụng được các cách khác nhau để bảo vệ thiết bị và nội dung số."], ["b", "Nhận thức được sự đa dạng của các rủi ro và đe dọa trong môi trường số."], ["c", "Áp dụng được các biện pháp an toàn và bảo mật."], ["d", "Sử dụng được các cách thức khác nhau để quan tâm đến mức độ tin cậy và quyền riêng tư."]]}, {"code": "4.2", "mien": 4, "name": "Bảo vệ dữ liệu cá nhân và quyền riêng tư", "tc2": [["a", "Thảo luận về cách bảo vệ dữ liệu cá nhân và quyền riêng tư trong môi trường số."], ["b", "Thảo luận về cách sử dụng và chia sẻ thông tin định danh cá nhân một cách an toàn."], ["c", "Chỉ ra được các tuyên bố trong chính sách quyền riêng tư về cách sử dụng dữ liệu cá nhân trong các dịch vụ số."]], "nc1": [["a", "Áp dụng được các cách thức khác nhau để bảo vệ dữ liệu cá nhân và quyền riêng tư trong môi trường số."], ["b", "Áp dụng được các cách thức đặc thù để chia sẻ dữ liệu cá nhân một cách an toàn."], ["c", "Giải thích được các tuyên bố trong chính sách quyền riêng tư về cách sử dụng dữ liệu cá nhân trong các dịch vụ số."]]}, {"code": "4.3", "mien": 4, "name": "Bảo vệ sức khỏe và an sinh số", "tc2": [["a", "Giải thích được những cách thức để tránh những sự đe dọa liên quan đến việc sử dụng công nghệ số đối với sức khỏe thể chất và tinh thần."], ["b", "Lựa chọn được cách thức bảo vệ bản thân và người khác khỏi nguy cơ trong môi trường số."], ["c", "Thảo luận về những công nghệ số giúp tăng cường thịnh vượng xã hội và sự hòa hợp trong xã hội."]], "nc1": [["a", "Trình bày được các cách thức khác nhau để tránh rủi ro và đe dọa đến sức khỏe thể chất và tinh thần khi sử dụng công nghệ số."], ["b", "Áp dụng được các cách thức khác nhau để bảo vệ bản thân và người khác khỏi nguy cơ trong môi trường số."], ["c", "Trình bày được các công nghệ số khác nhau giúp tăng cường thịnh vượng xã hội và sự hòa hợp trong xã hội."]]}, {"code": "4.4", "mien": 4, "name": "Bảo vệ môi trường", "tc2": [["a", "Thảo luận về các cách thức bảo vệ môi trường khỏi tác động của công nghệ số và việc sử dụng công nghệ số."]], "nc1": [["a", "Trình bày được các cách thức khác nhau để bảo vệ môi trường khỏi tác động của công nghệ số và việc sử dụng công nghệ số."]]}, {"code": "5.1", "mien": 5, "name": "Giải quyết các vấn đề kỹ thuật", "tc2": [["a", "Phân biệt được các vấn đề kỹ thuật khi vận hành thiết bị và sử dụng môi trường số."], ["b", "Chọn được giải pháp cho chúng."]], "nc1": [["a", "Đánh giá được các vấn đề kỹ thuật khi sử dụng môi trường số và vận hành các thiết bị số."], ["b", "Áp dụng được các giải pháp khác nhau cho chúng."]]}, {"code": "5.2", "mien": 5, "name": "Xác định nhu cầu và giải pháp công nghệ", "tc2": [["a", "Giải thích nhu cầu cá nhân."], ["b", "Lựa chọn được các công cụ số và các giải pháp công nghệ có thể có để giải quyết những nhu cầu đó."], ["c", "Chọn được cách điều chỉnh và tùy chỉnh môi trường số theo nhu cầu cá nhân."]], "nc1": [["a", "Đánh giá được nhu cầu cá nhân."], ["b", "Áp dụng được các công cụ số khác nhau và các giải pháp công nghệ có thể có để giải quyết những nhu cầu đó."], ["c", "Sử dụng được các cách khác nhau để điều chỉnh và tùy chỉnh môi trường số theo nhu cầu cá nhân."]]}, {"code": "5.3", "mien": 5, "name": "Sử dụng sáng tạo công nghệ số", "tc2": [["a", "Phân biệt được các công cụ và công nghệ số có thể được sử dụng để tạo ra kiến thức và đổi mới quy trình và sản phẩm."], ["b", "Gắn kết được cá nhân và tập thể vào quá trình xử lý nhận thức để hiểu và giải quyết các vấn đề khái niệm và tình huống có vấn đề trong môi trường số."]], "nc1": [["a", "Áp dụng được các công cụ và công nghệ số khác nhau để tạo ra kiến thức cũng như các quy trình và sản phẩm đổi mới."], ["b", "Áp dụng xử lý nhận thức của cá nhân và tập thể để giải quyết các vấn đề khái niệm và tình huống có vấn đề khác nhau trong môi trường số."]]}, {"code": "5.4", "mien": 5, "name": "Xác định các vấn đề cần cải thiện về NLS", "tc2": [["a", "Thảo luận về lĩnh vực NLS của bản thân cần được cải thiện hoặc cập nhật."], ["b", "Chỉ ra được cách hỗ trợ người khác phát triển NLS của họ."], ["c", "Chỉ ra được nơi để tìm kiếm cơ hội phát triển bản thân và cập nhật sự phát triển công nghệ số."]], "nc1": [["a", "Chứng minh được NLS của tôi cần được cải thiện hoặc cập nhật ở đâu."], ["b", "Minh họa được những cách khác nhau để hỗ trợ người khác phát triển NLS của họ."], ["c", "Đề xuất được các cơ hội khác nhau để phát triển bản thân và cập nhật sự phát triển công nghệ số."]]}, {"code": "6.1", "mien": 6, "name": "Hiểu biết về trí tuệ nhân tạo", "tc2": [["a", "Áp dụng được các nguyên tắc cơ bản của AI để giải quyết vấn đề đơn giản."], ["b", "Thực hiện được các thao tác cơ bản trên các công cụ AI."]], "nc1": [["a", "Phân tích được cách AI hoạt động trong các ứng dụng cụ thể."], ["b", "So sánh được các hệ thống AI khác nhau và cách chúng xử lý dữ liệu."]]}, {"code": "6.2", "mien": 6, "name": "Sử dụng trí tuệ nhân tạo", "tc2": [["a", "Tối ưu hóa việc sử dụng các công cụ AI để đạt hiệu quả cao hơn."], ["b", "Quản lý được việc triển khai các công cụ AI trong các dự án nhỏ."], ["c", "Bảo vệ được dữ liệu cá nhân và tuân thủ các quy định pháp luật về bảo mật thông tin khi sử dụng AI."]], "nc1": [["a", "Phát triển được các ứng dụng AI tùy chỉnh để giải quyết các vấn đề cụ thể."], ["b", "Điều chỉnh được các hệ thống AI để phù hợp với nhu cầu cụ thể."], ["c", "Đánh giá và giảm thiểu được các rủi ro đạo đức và pháp lý liên quan đến việc sử dụng AI."]]}, {"code": "6.3", "mien": 6, "name": "Đánh giá trí tuệ nhân tạo", "tc2": [["a", "Phân tích được hiệu quả của hệ thống AI trong việc giải quyết các vấn đề cụ thể."], ["b", "So sánh được hiệu suất của các hệ thống AI khác nhau."]], "nc1": [["a", "Đánh giá được độ chính xác và tin cậy của các hệ thống AI."], ["b", "Xem xét được các kết quả và đưa ra nhận xét về hiệu quả của hệ thống AI."]]}];
+
+  function buildRefText(khoi){
+    var isTHCS = khoi==="THCS", suf = isTHCS?"TC2":"NC1", lk = isTHCS?"tc2":"nc1";
+    var label = isTHCS ? "TC2 (THCS, Trung cấp/Bậc 4)" : "NC1 (THPT, Nâng cao/Bậc 5)";
+    var out = "THAM CHIẾU ĐẦY ĐỦ MÃ NLS — chỉ dùng đúng bậc " + label + ":\n";
+    NLS_DATA.forEach(function(g){
+      var arr = g[lk] || [];
+      var parts = arr.map(function(d){ return g.code + suf + d[0] + " " + d[1]; });
+      out += "[" + g.code + " " + g.name + "] " + parts.join(" | ") + "\n";
+    });
+    out += "GỢI Ý CÔNG CỤ THEO MÔN: Toán→GeoGebra/Desmos, bảng tính, AI kiểm tra lời giải; Lý-Hóa-Sinh/KHTN→PhET, mô phỏng, bảng tính, AI; Ngữ văn→Canva, CapCut, AI hỗ trợ viết; Sử-Địa/KHXH→bản đồ số, Google Earth, Padlet; Ngoại ngữ→Quizlet, phần mềm luyện nói, AI hội thoại; Tin học→IDE, Scratch, AI; Công nghệ→Tinkercad/CAD, mô phỏng; GDCD/KT-PL→tình huống số, khảo sát online; Nghệ thuật→phần mềm vẽ/nhạc, AI tạo sinh.\n";
+    return out;
+  }
+
+  /* ---------- System prompt cho Gemini (kiến thức đã học) ---------- */
+  var SYSTEM_PROMPT =
+"Bạn là chuyên gia soạn Kế hoạch bài dạy (giáo án) theo Chương trình GDPT 2018 và là chuyên gia tích hợp Năng lực số (NLS) cho học sinh theo Khung năng lực số (Thông tư 02/2025/TT-BGDĐT).\n\n"+
+"KHUNG NLS: 6 miền năng lực, 24 năng lực thành phần, 4 trình độ (Cơ bản→Trung cấp→Nâng cao→Chuyên sâu) theo 8 bậc. Học sinh THCS đạt Trung cấp (Bậc 3–4), THPT đạt Nâng cao (Bậc 5–6).\n"+
+"HỆ MÃ: [Miền].[NL thành phần][Trình độ][Bậc][a/b/c…]. Trong công cụ này: THPT dùng mã dạng NC1x (Nâng cao, Bậc 5); THCS dùng mã dạng TC2x (Trung cấp, Bậc 4). Ví dụ 1.1.NC1b = Miền 1, NL 1.1, Nâng cao/Bậc 5, mô tả b.\n\n"+
+"[[REF]]\n\n"+
+"PHƯƠNG PHÁP TÍCH HỢP (bắt buộc tuân theo, đây là cách một giáo viên giỏi đã làm):\n"+
+"1) Mỗi mã NLS phải gắn với MỘT HÀNH ĐỘNG SỐ CÓ THẬT của học sinh trong bài (xem video/tìm kiếm, dùng phần mềm trắc nghiệm, dùng công cụ mô phỏng, tạo sản phẩm số, dùng/đánh giá AI…). Không gắn mã một cách hình thức, không bịa hoạt động phi thực tế.\n"+
+"2) Chèn NLS vào ĐÚNG BA VỊ TRÍ, và mã ở mục tiêu PHẢI KHỚP mã trong hoạt động:\n"+
+"   a. MỤC TIÊU → phần Phát triển năng lực: thêm tiểu mục 'Năng lực số' liệt kê các mã sẽ đạt trong bài, mỗi mã kèm mô tả đã diễn đạt theo ngữ cảnh bài.\n"+
+"   b. TIẾN TRÌNH DẠY HỌC: tại đúng bước học sinh thao tác số (thường là Bước 1 GV chuyển giao nhiệm vụ, hoặc cột Dự kiến sản phẩm), thêm câu mô tả nhiệm vụ số và ghi mã ngay tại đó.\n"+
+"   c. THIẾT BỊ DẠY HỌC & HỌC LIỆU: bổ sung công cụ/học liệu số dùng trong bài (video AI, phần mềm trắc nghiệm, PhET/GeoGebra…).\n"+
+"3) TÍCH HỢP TOÀN DIỆN, KHÔNG chỉ một năng lực: cài CÀNG NHIỀU năng lực thành phần phù hợp CÀNG TỐT, trải rộng qua NHIỀU MIỀN (nên phủ tối thiểu 4–5 trong 6 miền), miễn là TỰ NHIÊN với nội dung bài. Một giáo án đầy đủ thường có khoảng 8–15 điểm chạm NLS.\n"+
+"   - MỖI hoạt động (Khởi động, TỪNG phần Hình thành kiến thức, Luyện tập, Vận dụng) phải có ÍT NHẤT 1 điểm chạm; hoạt động lớn nên có 2–3.\n"+
+"   - Gợi ý phủ rộng theo miền: Miền 1 (tìm/đánh giá/quản lý thông tin) khi HS tra cứu tư liệu; Miền 2 (tương tác/chia sẻ/hợp tác) khi dùng phần mềm trắc nghiệm hoặc làm nhóm trên nền tảng số; Miền 3 (tạo sản phẩm số, bản quyền) ở Luyện tập/Vận dụng; Miền 4 (an toàn, quyền riêng tư, sức khỏe số) khi nhắc HS dùng thiết bị/mạng; Miền 5 (mô phỏng, giải pháp công nghệ) khi thí nghiệm ảo/xử lý số liệu; Miền 6 (dùng & đánh giá AI) khi có công cụ AI.\n"+
+"4) Chọn công cụ số phù hợp MÔN học (TỰ nhận diện môn từ nội dung; xem gợi ý theo môn ở trên).\n"+
+"5) CÂN BẰNG: phủ rộng nhưng KHÔNG gượng ép — không bịa hoạt động số phi thực tế chỉ để thêm mã; mỗi điểm chạm phải hợp lý về sư phạm.\n\n"+
+"NGUYÊN TẮC GIỮ NGUYÊN: KHÔNG xóa, KHÔNG rút gọn, KHÔNG làm sai lệch nội dung chuyên môn gốc. Chỉ THÊM phần NLS. Giữ nguyên cấu trúc, bảng biểu (2 cột Hoạt động/Sản phẩm), tiêu đề, thứ tự.\n"+
+"QUAN TRỌNG: Nếu gặp các mốc dạng [[HINH_1]], [[HINH_2]]… hãy GIỮ NGUYÊN đúng vị trí (đó là chỗ chèn hình ảnh gốc), tuyệt đối không xóa hay đổi.\n\n"+
+"ĐÁNH DẤU PHẦN THÊM (để người dùng nhìn thấy): mọi MÃ NLS bọc trong <span class=\"nls-tag\">1.1.NC1b</span>; mọi câu/nhiệm vụ do bạn thêm bọc trong <span class=\"nls-added\">...</span>.\n\n"+
+"ĐỊNH DẠNG ĐẦU RA: CHỈ trả về một đối tượng JSON hợp lệ, KHÔNG kèm giải thích ngoài JSON, KHÔNG dùng dấu ```:\n"+
+"{\n"+
+"  \"giaoan_html\": \"<toàn bộ giáo án ĐÃ tích hợp, dạng HTML: nội dung gốc giữ nguyên + phần NLS đã đánh dấu. Dùng <h1>/<h2>/<h3>, <p>, <ul>/<li>, <table><tr><td> giống bố cục gốc>\",\n"+
+"  \"giai_thich_html\": \"<HTML giải thích: (1) một <table> gồm cột Mã NLS | Vị trí trong bài | Hành động số của HS | Vì sao phù hợp; (2) đoạn tóm tắt ngắn cách tích hợp>\"\n"+
+"}\n"+
+"Toàn bộ bằng tiếng Việt. giaoan_html phải là bản HOÀN CHỈNH có thể dán vào Word.";
+
+  /* ---------- Tiện ích ---------- */
+  var $ = function(s){ return document.querySelector(s); };
+  function store(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  var state = { inputHtml:"", inputText:"", fileName:"", aiHtml:"", imgs:[] };
+
+  // Tách ảnh khỏi HTML để KHÔNG gửi base64 nặng sang AI; thay bằng mốc [[HINH_n]]
+  function stripImages(html){
+    var doc = new DOMParser().parseFromString("<div id='w'>"+html+"</div>","text/html");
+    var w = doc.getElementById("w"), imgs=[], n=0;
+    w.querySelectorAll("img").forEach(function(im){
+      n++; imgs.push(im.outerHTML);
+      im.parentNode.replaceChild(doc.createTextNode("[[HINH_"+n+"]]"), im);
+    });
+    return { html:w.innerHTML, imgs:imgs };
+  }
+  function restoreImages(html, imgs){
+    if(!imgs || !imgs.length) return html;
+    return html.replace(/\[\[HINH_(\d+)\]\]/g, function(m,i){
+      var idx=parseInt(i,10)-1; return (imgs[idx]!=null) ? imgs[idx] : "[hình ảnh]";
+    });
+  }
+  function estTokens(s){ return Math.round((s||"").length/4); }
+
+  /* ---------- Dựng phần tham khảo ---------- */
+  (function buildRef(){
+    var box = $("#refMien"), h="";
+    MIEN.forEach(function(m){
+      h += '<div class="mien"><h4><span class="dot" style="background:'+m.mau+'"></span>Miền '+m.id+'. '+m.ten+'</h4>';
+      NLS_DATA.filter(function(g){return g.mien===m.id;}).forEach(function(g){
+        h += '<div class="ntpb"><div class="ntpn">'+g.code+'. '+g.name+'</div><div class="lvlpair">';
+        h += '<div class="lvlcol"><span class="lvh">THPT · NC1</span>'+g.nc1.map(function(d){return '<div class="cd"><b>'+g.code+'NC1'+d[0]+'</b> '+d[1]+'</div>';}).join('')+'</div>';
+        h += '<div class="lvlcol"><span class="lvh">THCS · TC2</span>'+g.tc2.map(function(d){return '<div class="cd"><b>'+g.code+'TC2'+d[0]+'</b> '+d[1]+'</div>';}).join('')+'</div>';
+        h += '</div></div>';
+      });
+      h += '</div>';
+    });
+    box.innerHTML = h;
+  })();
+
+  /* ---------- Key: nạp & lưu ---------- */
+  (function initKey(){
+    var saved = load("nls_key");
+    if(saved){ $("#apiKey").value = saved; $("#remember").checked = true; }
+    var m = load("nls_model"); if(m){ $("#model").value = m; }
+    updateKeyState();
+  })();
+  function updateKeyState(){
+    var has = $("#apiKey").value.trim().length > 10;
+    var el = $("#keyState");
+    el.textContent = has ? "API key đã nhập" : "Chưa có API key";
+    el.style.color = has ? "var(--teal-d)" : "";
+  }
+  $("#apiKey").addEventListener("input", function(){
+    updateKeyState();
+    if($("#remember").checked) store("nls_key", $("#apiKey").value.trim());
+  });
+  $("#remember").addEventListener("change", function(){
+    if(this.checked) store("nls_key", $("#apiKey").value.trim()); else del("nls_key");
+  });
+  $("#model").addEventListener("change", function(){ store("nls_model", this.value); });
+  $("#clearKey").addEventListener("click", function(e){
+    e.preventDefault(); del("nls_key"); $("#apiKey").value=""; $("#remember").checked=false; updateKeyState();
+  });
+
+  /* ---------- Tabs nhập ---------- */
+  document.querySelectorAll(".tab[data-tab]").forEach(function(t){
+    t.addEventListener("click", function(){
+      document.querySelectorAll(".tab[data-tab]").forEach(function(x){ x.classList.remove("on"); });
+      t.classList.add("on");
+      var v = t.getAttribute("data-tab");
+      $("#tab-upload").style.display = v==="upload" ? "" : "none";
+      $("#tab-paste").style.display  = v==="paste"  ? "" : "none";
+    });
+  });
+
+  /* ---------- Nhập bằng dán ---------- */
+  $("#pasteBox").addEventListener("input", function(){
+    var txt = this.value;
+    state.inputText = txt;
+    // chuyển văn bản thô -> HTML đơn giản (giữ đoạn)
+    var html = txt.split(/\n{2,}/).map(function(p){
+      return "<p>"+esc(p).replace(/\n/g,"<br>")+"</p>";
+    }).join("");
+    state.inputHtml = html;
+    state.aiHtml = html;
+    state.imgs = [];
+    renderPreview(html, txt.length);
+  });
+
+  /* ---------- Nhập bằng file .docx ---------- */
+  var drop = $("#drop"), fileInput = $("#file");
+  drop.addEventListener("click", function(){ fileInput.click(); });
+  ["dragenter","dragover"].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add("hot"); }); });
+  ["dragleave","drop"].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove("hot"); }); });
+  drop.addEventListener("drop", function(e){ var f = e.dataTransfer.files[0]; if(f) handleFile(f); });
+  fileInput.addEventListener("change", function(){ if(this.files[0]) handleFile(this.files[0]); });
+
+  function handleFile(f){
+    if(!/\.docx$/i.test(f.name)){ showAlert("Chỉ hỗ trợ file .docx. Với .doc cũ, hãy mở bằng Word rồi Lưu thành .docx, hoặc dùng ô Dán văn bản."); return; }
+    if(typeof window.mammoth === "undefined"){
+      showAlert("Chưa tải được thư viện đọc .docx (lần đầu cần Internet). Bạn có thể chuyển sang tab <b>Dán văn bản</b> để dán nội dung giáo án.");
+      return;
+    }
+    hideAlert();
+    var reader = new FileReader();
+    reader.onload = function(){
+      window.mammoth.convertToHtml({arrayBuffer: reader.result})
+        .then(function(res){
+          var full = res.value || "";
+          var s = stripImages(full);
+          state.inputHtml = full;        // xem trước: có ảnh
+          state.aiHtml    = s.html;      // gửi AI: ảnh -> [[HINH_n]]
+          state.imgs      = s.imgs;
+          state.inputText = (s.html.replace(/<[^>]+>/g," ")).replace(/\s+/g," ").trim();
+          state.fileName  = f.name;
+          $("#fileName").textContent = f.name;
+          $("#fileMeta").textContent = " · " + Math.round(f.size/1024) + " KB · " + s.imgs.length + " hình";
+          $("#fileChip").style.display = "flex";
+          renderPreview(full, state.inputText.length);
+        })
+        .catch(function(err){ showAlert("Không đọc được file: " + (err.message||err)); });
+    };
+    reader.readAsArrayBuffer(f);
+  }
+
+  function renderPreview(html, len){
+    $("#inPreview").innerHTML = html;
+    var est = estTokens(state.aiHtml || html);
+    var warn = est>230000 ? " — ⚠ vượt hạn mức gói miễn phí, hãy chia nhỏ giáo án"
+             : (est>120000 ? " (khá lớn)" : "");
+    $("#inMeta").innerHTML = (len ? ("Đã nhận ~" + len.toLocaleString("vi-VN") + " ký tự · ") : "")
+      + "ước tính ~" + est.toLocaleString("vi-VN") + " token gửi AI" + warn;
+  }
+
+  /* ---------- Trạng thái/thông báo ---------- */
+  function setStatus(on, txt){ $("#status").style.display = on ? "flex":"none"; if(txt) $("#statusText").textContent = txt; }
+  function showAlert(msg){ var a=$("#alert"); a.innerHTML = msg; a.style.display="block"; }
+  function hideAlert(){ $("#alert").style.display="none"; }
+
+  /* ---------- Gọi Gemini ---------- */
+  $("#run").addEventListener("click", runIntegrate);
+
+  function runIntegrate(){
+    hideAlert();
+    var key = $("#apiKey").value.trim();
+    if(key.length < 10){ showAlert("Vui lòng nhập API key Gemini ở Bước 1. Xem hướng dẫn lấy key nếu chưa có."); return; }
+    if(!state.inputHtml || state.inputText.length < 40){ showAlert("Chưa có nội dung giáo án. Hãy tải file .docx hoặc dán văn bản ở Bước 2."); return; }
+
+    var model = $("#model").value;
+    var khoi  = $("#khoi").value;
+    var maLevel = khoi==="THCS" ? "TC2 (Trung cấp/Bậc 4)" : "NC1 (Nâng cao/Bậc 5)";
+
+    var est = estTokens(state.aiHtml);
+    if(est > 230000){
+      showAlert("Giáo án quá lớn (~"+est.toLocaleString("vi-VN")+" token) so với hạn mức gói miễn phí (250.000 token/phút). Hãy chia nhỏ giáo án — mỗi lần chỉ 1 bài — rồi chạy lại.");
+      return;
+    }
+
+    var userMsg =
+      "Đây là giáo án CHƯA tích hợp năng lực số.\n"+
+      "Cấp học: "+khoi+" → dùng mã "+maLevel+".\n"+
+      "Hãy TỰ nhận diện môn học từ nội dung, rồi tích hợp năng lực số vào TOÀN BỘ giáo án MỘT CÁCH TOÀN DIỆN (phủ nhiều miền, mỗi hoạt động ít nhất 1 điểm chạm) theo đúng phương pháp đã quy định, và trả về JSON đúng định dạng.\n\n"+
+      "===== GIÁO ÁN GỐC (HTML) =====\n" + state.aiHtml;
+
+    var body = {
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT.replace("[[REF]]", buildRefText(khoi)) }] },
+      contents: [{ role:"user", parts:[{ text: userMsg }] }],
+      generationConfig: { temperature:0.4, maxOutputTokens:32768, responseMimeType:"application/json" }
+    };
+
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(key);
+
+    $("#run").disabled = true;
+    setStatus(true, "Đang gửi giáo án cho AI và cài năng lực số… (có thể mất 20–60 giây)");
+
+    fetch(url, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(body)
+    })
+    .then(function(res){ return res.json().then(function(j){ return {ok:res.ok, status:res.status, j:j}; }); })
+    .then(function(r){
+      if(!r.ok){
+        var m = (r.j && r.j.error && r.j.error.message) ? r.j.error.message : ("Lỗi HTTP "+r.status);
+        throw new Error(m);
+      }
+      var cand = r.j.candidates && r.j.candidates[0];
+      if(!cand){
+        var bf = r.j.promptFeedback && r.j.promptFeedback.blockReason;
+        throw new Error(bf ? ("Yêu cầu bị chặn ("+bf+"). Thử lại hoặc đổi nội dung.") : "AI không trả về kết quả.");
+      }
+      var parts = (cand.content && cand.content.parts) || [];
+      var text = parts.map(function(p){ return p.text||""; }).join("");
+      if(!text.trim()) throw new Error("AI trả về rỗng. Thử lại hoặc đổi model.");
+      var data = parseJson(text);
+      if(!data || !data.giaoan_html){
+        // fallback: hiển thị thô
+        renderResult(text, "<p>Không tách được phần giải thích. Nội dung trên là kết quả thô từ AI.</p>");
+      } else {
+        renderResult(data.giaoan_html, data.giai_thich_html || "<p>(AI không kèm giải thích.)</p>");
+      }
+      if(cand.finishReason === "MAX_TOKENS"){
+        showAlert("Lưu ý: giáo án dài nên kết quả có thể bị cắt. Hãy chia nhỏ giáo án rồi chạy từng phần.");
+      }
+    })
+    .catch(function(err){
+      var msg = err.message||String(err), low = msg.toLowerCase(), hint;
+      if(low.indexOf("quota")>=0 || low.indexOf("exceeded")>=0 || low.indexOf("resource_exhausted")>=0 || low.indexOf("rate limit")>=0 || low.indexOf("429")>=0){
+        hint = "Đây là <b>giới hạn của gói MIỄN PHÍ</b> (không phải lỗi key). Cách xử lý: đợi ~30 giây rồi thử lại; chia nhỏ giáo án (mỗi lần 1 bài); hoặc bật thanh toán trong Google AI Studio để nâng hạn mức.";
+      } else if(low.indexOf("api key")>=0 || low.indexOf("api_key")>=0 || low.indexOf("permission")>=0 || low.indexOf("invalid")>=0){
+        hint = "Có thể key sai hoặc chưa kích hoạt. Kiểm tra lại API key ở Bước 1.";
+      } else if(low.indexOf("not found")>=0 || low.indexOf("404")>=0){
+        hint = "Model không khả dụng với key này — hãy chọn model khác ở Bước 1.";
+      } else {
+        hint = "Thử lại khi mạng ổn định, hoặc chọn model khác.";
+      }
+      showAlert("<b>Không xử lý được.</b> " + esc(msg) + "<br><span style='color:var(--muted)'>"+hint+"</span>");
+    })
+    .finally(function(){
+      $("#run").disabled = false;
+      setStatus(false);
+    });
+  }
+
+  function parseJson(text){
+    var t = text.trim().replace(/^```(json)?/i,"").replace(/```$/,"").trim();
+    try{ return JSON.parse(t); }catch(e){}
+    var a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if(a>=0 && b>a){ try{ return JSON.parse(t.slice(a,b+1)); }catch(e2){} }
+    return null;
+  }
+
+  /* ---------- Hiển thị kết quả ---------- */
+  function renderResult(giaoanHtml, giaiThichHtml){
+    $("#outDoc").innerHTML = restoreImages(giaoanHtml, state.imgs);
+    $("#outExpl").innerHTML = giaiThichHtml;
+    $("#outWrap").style.display = "block";
+    applyHighlight();
+    $("#outWrap").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+  function applyHighlight(){ document.body.classList.toggle("hl", $("#hlToggle").checked); }
+  $("#hlToggle").addEventListener("change", applyHighlight);
+
+  /* Tabs kết quả */
+  document.querySelectorAll(".tab[data-otab]").forEach(function(t){
+    t.addEventListener("click", function(){
+      document.querySelectorAll(".tab[data-otab]").forEach(function(x){ x.classList.remove("on"); });
+      t.classList.add("on");
+      var v = t.getAttribute("data-otab");
+      $("#otab-doc").style.display  = v==="doc"  ? "" : "none";
+      $("#otab-expl").style.display = v==="expl" ? "" : "none";
+    });
+  });
+
+  /* ---------- Xuất Word ---------- */
+  $("#download").addEventListener("click", function(){
+    var src = $("#outDoc");
+    if(!src.innerHTML.trim()){ return; }
+    var keepHl = $("#hlInWord").checked;
+    var doc = new DOMParser().parseFromString("<div id='r'>"+src.innerHTML+"</div>", "text/html");
+    var root = doc.getElementById("r");
+
+    // Chuẩn hóa style nội tuyến để Word hiển thị đúng
+    root.querySelectorAll("table").forEach(function(tb){
+      tb.setAttribute("style","border-collapse:collapse;width:100%;"+(tb.getAttribute("style")||""));
+    });
+    root.querySelectorAll("td,th").forEach(function(td){
+      td.setAttribute("style","border:1px solid #444;padding:6px 8px;vertical-align:top;"+(td.getAttribute("style")||""));
+    });
+    root.querySelectorAll(".nls-tag").forEach(function(s){
+      s.setAttribute("style", keepHl
+        ? "font-weight:700;background:#FBEFD7;padding:0 3px;border:1px solid #EBC98A;"
+        : "font-weight:700;");
+    });
+    root.querySelectorAll(".nls-added").forEach(function(s){
+      s.setAttribute("style", keepHl ? "background:#FFF7E9;" : "");
+    });
+
+    var css = "body{font-family:'Times New Roman',serif;font-size:13pt;line-height:1.5;}"+
+              "h1{font-size:15pt;} h2{font-size:14pt;} h3{font-size:13pt;} "+
+              "table{border-collapse:collapse;} td,th{border:1px solid #444;padding:6px;} p{margin:6px 0;}";
+    var html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>"+
+      "<head><meta charset='utf-8'><title>Giáo án tích hợp NLS</title>"+
+      "<style>"+css+"</style></head><body>"+ root.innerHTML +"</body></html>";
+
+    var blob = new Blob(["\ufeff", html], {type:"application/msword"});
+    var a = document.createElement("a");
+    var base = (state.fileName ? state.fileName.replace(/\.docx?$/i,"") : "Giao_an") ;
+    a.href = URL.createObjectURL(blob);
+    a.download = base + "_tich_hop_NLS.doc";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  });
+
+})();
+</script>
+</body>
+</html>
