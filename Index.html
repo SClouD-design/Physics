@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trợ lý tích hợp Năng lực số vào giáo án</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+  :root{
+    --paper:#F4F6F7; --card:#FFFFFF; --ink:#1E2A31; --muted:#5C6B74; --line:#DBE3E5;
+    --teal:#0E7C6B; --teal-d:#0A5F52; --teal-bg:#E6F2EF; --indigo:#38486A;
+    --amber:#D98A1F; --amber-bg:#FBEFD7; --amber-line:#EBC98A; --danger:#B23A48; --danger-bg:#FBEAEC;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:'Be Vietnam Pro',system-ui,-apple-system,sans-serif;
+    background:var(--paper); color:var(--ink); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  code,.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+  a{color:var(--teal-d)}
+
+  header.top{
+    position:sticky; top:0; z-index:20; background:rgba(244,246,247,.86);
+    backdrop-filter:saturate(180%) blur(8px); border-bottom:1px solid var(--line);
+  }
+  .top-in{max-width:940px; margin:0 auto; padding:14px 22px; display:flex; align-items:center; gap:14px}
+  .mark{
+    width:38px;height:38px;border-radius:10px;flex:none;
+    background:linear-gradient(135deg,var(--teal),var(--indigo));
+    display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px;letter-spacing:.5px;
+  }
+  .top h1{font-size:17px;margin:0;font-weight:700;letter-spacing:-.2px}
+  .top p{margin:1px 0 0;font-size:12.5px;color:var(--muted)}
+  .top .spacer{flex:1}
+  .pill{font-size:12px;color:var(--teal-d);background:var(--teal-bg);border:1px solid #CBE4DD;
+    padding:4px 10px;border-radius:999px;font-weight:600;white-space:nowrap}
+
+  main{max-width:940px; margin:0 auto; padding:26px 22px 80px}
+  .lead{font-size:14.5px;color:var(--muted);max-width:70ch;margin:2px 0 26px}
+  .lead b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:22px 22px; margin:0 0 18px; box-shadow:0 1px 0 rgba(30,42,49,.03)}
+  .ey{display:flex;align-items:center;gap:11px;margin:0 0 4px}
+  .num{width:26px;height:26px;border-radius:8px;flex:none;background:var(--ink);color:#fff;
+    font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;display:grid;place-items:center}
+  .card h2{font-size:16.5px;margin:0;font-weight:700;letter-spacing:-.2px}
+  .hint{font-size:13px;color:var(--muted);margin:2px 0 16px 37px}
+
+  label.fld{display:block;font-size:13px;font-weight:600;margin:0 0 6px;color:var(--ink)}
+  input[type=text],input[type=password],select,textarea{
+    width:100%;font-family:inherit;font-size:14px;color:var(--ink);background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;transition:border .15s,box-shadow .15s}
+  input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-bg)}
+  textarea{resize:vertical;line-height:1.55}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:180px}
+  .mini{font-size:12px;color:var(--muted);margin-top:6px}
+
+  .btn{font-family:inherit;font-weight:600;font-size:14px;border:1px solid transparent;border-radius:10px;
+    padding:11px 18px;cursor:pointer;transition:transform .06s,background .15s,box-shadow .15s;display:inline-flex;
+    align-items:center;gap:9px;justify-content:center}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:hover{background:var(--teal-d)}
+  .btn-primary:disabled{background:#9CBEB7;cursor:not-allowed}
+  .btn-ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:#B9C6C9;background:#FAFBFB}
+  .btn-amber{background:var(--amber);color:#fff}
+  .btn-amber:hover{filter:brightness(.95)}
+  .btn-block{width:100%}
+  .btn-lg{padding:14px 22px;font-size:15px}
+
+  details.guide{border:1px dashed var(--amber-line);background:var(--amber-bg);border-radius:12px;padding:2px 14px;margin:0 0 16px}
+  details.guide>summary{cursor:pointer;font-weight:600;font-size:13.5px;color:#8a5b12;padding:11px 2px;list-style:none;display:flex;gap:8px;align-items:center}
+  details.guide>summary::-webkit-details-marker{display:none}
+  details.guide[open]>summary{border-bottom:1px dashed var(--amber-line);margin-bottom:8px}
+  details.guide ol{margin:4px 0 12px;padding-left:20px;font-size:13.5px}
+  details.guide li{margin:5px 0}
+  .kbd{background:#fff;border:1px solid var(--amber-line);border-radius:6px;padding:1px 6px;font-family:'JetBrains Mono',monospace;font-size:12px}
+
+  .tabs{display:flex;gap:6px;margin:0 0 14px}
+  .tab{font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;color:var(--muted);cursor:pointer}
+  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  .drop{border:1.5px dashed #BCCBCE;border-radius:12px;background:#FAFCFC;padding:26px;text-align:center;cursor:pointer;transition:.15s}
+  .drop:hover,.drop.hot{border-color:var(--teal);background:var(--teal-bg)}
+  .drop .big{font-weight:600;font-size:14.5px}
+  .drop .sm{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .filechip{display:none;align-items:center;gap:10px;margin-top:12px;font-size:13px;background:var(--teal-bg);
+    border:1px solid #CBE4DD;border-radius:10px;padding:9px 12px}
+  .filechip b{color:var(--teal-d)}
+
+  .preview-doc{border:1px solid var(--line);border-radius:10px;background:#fff;padding:18px 20px;max-height:320px;
+    overflow:auto;font-size:13.5px}
+  .preview-doc:empty{display:none}
+  .preview-doc table{border-collapse:collapse;width:100%;margin:8px 0}
+  .preview-doc td,.preview-doc th{border:1px solid #cfd8da;padding:6px 8px;vertical-align:top;font-size:12.5px}
+  .preview-doc h1,.preview-doc h2,.preview-doc h3{font-size:14.5px;margin:12px 0 4px}
+  .preview-doc img{max-width:100%;height:auto}
+
+  /* Output */
+  #outWrap{display:none}
+  .out-doc{border:1px solid var(--line);border-radius:10px;background:#fff;padding:22px 24px;max-height:560px;overflow:auto;font-size:13.5px}
+  .out-doc table{border-collapse:collapse;width:100%;margin:10px 0}
+  .out-doc td,.out-doc th{border:1px solid #cfd8da;padding:7px 9px;vertical-align:top}
+  .out-doc h1,.out-doc h2,.out-doc h3{margin:14px 0 6px}
+  .out-doc img{max-width:100%;height:auto}
+  .nls-tag{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.92em}
+  body.hl .nls-tag{background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:5px;padding:0 5px;color:#8a5b12}
+  body.hl .nls-added{background:#FFF7E9;box-shadow:inset 2px 0 0 var(--amber)}
+  .out-doc .nls-added{padding-left:4px}
+
+  .expl{border:1px solid var(--line);border-radius:10px;background:#FCFDFD;padding:18px 20px;max-height:560px;overflow:auto;font-size:13.5px}
+  .expl h3{margin:12px 0 6px;font-size:14.5px}
+  .expl table{border-collapse:collapse;width:100%;margin:8px 0}
+  .expl td,.expl th{border:1px solid #dbe3e5;padding:6px 9px;font-size:12.5px;text-align:left;vertical-align:top}
+  .expl th{background:#F1F5F5}
+  .expl code{background:#EEF3F3;border-radius:5px;padding:1px 5px}
+
+  .status{display:none;align-items:center;gap:12px;font-size:13.5px;color:var(--muted);margin-top:14px}
+  .spin{width:18px;height:18px;border:2.5px solid #D6E1E0;border-top-color:var(--teal);border-radius:50%;animation:sp 0.8s linear infinite;flex:none}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .alert{display:none;font-size:13.5px;border-radius:10px;padding:12px 14px;margin-top:14px;
+    background:var(--danger-bg);border:1px solid #E9C3C8;color:#7d2933}
+  .alert b{color:#7d2933}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+  .toolbar .spacer{flex:1}
+  .chk{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer;user-select:none}
+  .chk input{width:16px;height:16px;accent-color:var(--teal)}
+
+  /* Reference drawer */
+  .ref summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;gap:10px}
+  .ref summary::-webkit-details-marker{display:none}
+  .ref summary .chev{transition:.2s;color:var(--muted)}
+  .ref[open] summary .chev{transform:rotate(90deg)}
+  .mien{border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin:12px 0 0;background:#fff}
+  .mien h4{margin:0 0 7px;font-size:13.5px;display:flex;align-items:center;gap:9px}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .ntps{display:flex;flex-wrap:wrap;gap:6px}
+  .ntp{font-size:12px;background:#F3F6F6;border:1px solid var(--line);border-radius:7px;padding:3px 9px;color:var(--muted)}
+  .scheme{background:#F7FAF9;border:1px solid #D9E7E3;border-radius:11px;padding:14px 16px;font-size:13px;margin:14px 0 0}
+  .scheme .mono{color:var(--teal-d);font-weight:600}
+  .lvltag{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:12px;padding:1px 7px;border-radius:6px;background:var(--teal-bg);color:var(--teal-d);border:1px solid #CBE4DD}
+
+  footer{max-width:940px;margin:0 auto;padding:0 22px 40px;font-size:12px;color:var(--muted)}
+  @media (max-width:640px){
+    main{padding:20px 16px 70px} .top-in{padding:12px 16px} .card{padding:18px 16px}
+    .hint{margin-left:0}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  .ntpb{border-top:1px solid var(--line);padding:9px 0 3px}
+  .ntpn{font-weight:600;font-size:12.5px;margin-bottom:6px;color:var(--ink)}
+  .lvlpair{display:flex;gap:12px;flex-wrap:wrap}
+  .lvlcol{flex:1;min-width:230px}
+  .lvh{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--teal-d);background:var(--teal-bg);border:1px solid #CBE4DD;border-radius:5px;padding:1px 6px;margin-bottom:5px}
+  .cd{font-size:12px;color:var(--muted);margin:2px 0;line-height:1.45}
+  .cd b{font-family:'JetBrains Mono',monospace;color:var(--ink);font-size:11.5px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="mark">NLS</div>
+    <div>
+      <h1>Trợ lý tích hợp Năng lực số vào giáo án</h1>
+      <p>Đưa giáo án vào · AI cài năng lực số theo Khung NLS (TT&nbsp;02/2025) · tải về file Word</p>
+    </div>
+    <div class="spacer"></div>
+    <span class="pill" id="keyState">Chưa có API key</span>
+  </div>
+</header>
+
+<main>
+  <p class="lead">Công cụ chạy hoàn toàn trên máy bạn. Bạn dán hoặc tải lên một <b>giáo án chưa tích hợp năng lực số</b>, chọn khối, rồi để AI cài các mã năng lực số vào <b>đúng từng hoạt động</b> theo khung 5512 — cùng phần <b>giải thích rõ những gì đã thêm</b>. Cuối cùng tải về file Word.</p>
+
+  <!-- STEP 1: KEY -->
+  <section class="card">
+    <div class="ey"><span class="num">1</span><h2>Kết nối API Gemini</h2></div>
+    <p class="hint">Bạn dùng API key Gemini của riêng mình. Key chỉ nằm trên máy này và chỉ gửi thẳng tới Google — không lưu ở đâu khác.</p>
+
+    <details class="guide">
+      <summary>▸ Cách lấy API key Gemini miễn phí (mất ~1 phút)</summary>
+      <ol>
+        <li>Mở <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> và đăng nhập tài khoản Google.</li>
+        <li>Bấm <span class="kbd">Create API key</span> (hoặc <span class="kbd">Get API key</span>).</li>
+        <li>Chọn/ tạo một dự án khi được hỏi, rồi bấm tạo key.</li>
+        <li>Sao chép chuỗi key (bắt đầu bằng <span class="kbd">AIza…</span>).</li>
+        <li>Dán vào ô bên dưới. Gói miễn phí đủ để thử nghiệm (có giới hạn số lượt/phút).</li>
+      </ol>
+    </details>
+
+    <div class="row">
+      <div style="flex:2">
+        <label class="fld" for="apiKey">API key</label>
+        <input type="password" id="apiKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+        <div class="mini">
+          <label class="chk"><input type="checkbox" id="remember"> Ghi nhớ key trên máy này</label>
+          &nbsp;·&nbsp;<a href="#" id="clearKey">Xóa key đã lưu</a>
+        </div>
+      </div>
+      <div>
+        <label class="fld" for="model">Model</label>
+        <select id="model">
+          <option value="gemini-2.5-flash">gemini-2.5-flash (khuyến nghị, có gói miễn phí)</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro (mạnh hơn, chậm hơn)</option>
+          <option value="gemini-3-flash-preview">gemini-3-flash-preview (mới)</option>
+          <option value="gemini-flash-latest">gemini-flash-latest</option>
+        </select>
+        <div class="mini">Nếu báo lỗi model không tồn tại, hãy chọn model khác.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: INPUT -->
+  <section class="card">
+    <div class="ey"><span class="num">2</span><h2>Đưa giáo án vào</h2></div>
+    <p class="hint">Tải file Word (.docx) hoặc dán trực tiếp nội dung giáo án gốc. Giữ nguyên cấu trúc bài để AI cài đúng chỗ.</p>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="upload">Tải file .docx</button>
+      <button class="tab" data-tab="paste">Dán văn bản</button>
+    </div>
+
+    <div id="tab-upload">
+      <div class="drop" id="drop">
+        <div class="big">Kéo–thả file .docx vào đây hoặc bấm để chọn</div>
+        <div class="sm">Đọc trực tiếp trong trình duyệt, không tải file lên máy chủ nào</div>
+        <input type="file" id="file" accept=".docx" hidden>
+      </div>
+      <div class="filechip" id="fileChip"><span>📄</span><b id="fileName"></b><span id="fileMeta" style="color:var(--muted)"></span></div>
+    </div>
+
+    <div id="tab-paste" style="display:none">
+      <label class="fld" for="pasteBox">Nội dung giáo án</label>
+      <textarea id="pasteBox" rows="10" placeholder="Dán toàn bộ nội dung giáo án gốc vào đây..."></textarea>
+    </div>
+
+    <div style="margin-top:14px">
+      <label class="fld">Xem trước nội dung đã nhận</label>
+      <div class="preview-doc" id="inPreview"></div>
+      <div class="mini" id="inMeta"></div>
+    </div>
+  </section>
+
+  <!-- STEP 3: OPTIONS -->
+  <section class="card">
+    <div class="ey"><span class="num">3</span><h2>Chọn cấp học</h2></div>
+    <p class="hint">Bạn chỉ cần chọn cấp học — công cụ tự nhận diện môn và tự cài <b>tất cả năng lực số phù hợp</b> vào toàn bộ giáo án. THCS dùng mã <span class="mono">TC2</span> (Bậc 4), THPT dùng mã <span class="mono">NC1</span> (Bậc 5).</p>
+    <div class="row">
+      <div style="max-width:340px">
+        <label class="fld" for="khoi">Cấp học</label>
+        <select id="khoi">
+          <option value="THPT">THPT (lớp 10–12)</option>
+          <option value="THCS">THCS (lớp 6–9)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:18px">
+      <button class="btn btn-primary btn-lg btn-block" id="run">Tích hợp năng lực số vào giáo án</button>
+    </div>
+    <div class="status" id="status"><span class="spin"></span><span id="statusText">Đang xử lý…</span></div>
+    <div class="alert" id="alert"></div>
+  </section>
+
+  <!-- OUTPUT -->
+  <section class="card" id="outWrap">
+    <div class="ey"><span class="num">✓</span><h2>Kết quả</h2></div>
+
+    <div class="tabs" style="margin-top:8px">
+      <button class="tab on" data-otab="doc">Giáo án đã tích hợp</button>
+      <button class="tab" data-otab="expl">AI đã thêm gì?</button>
+    </div>
+
+    <div id="otab-doc">
+      <div class="toolbar">
+        <label class="chk"><input type="checkbox" id="hlToggle" checked> Tô sáng phần năng lực số</label>
+        <div class="spacer"></div>
+        <label class="chk"><input type="checkbox" id="hlInWord"> Giữ tô sáng trong file Word</label>
+        <button class="btn btn-amber" id="download">⬇ Tải về file Word</button>
+      </div>
+      <div class="out-doc" id="outDoc"></div>
+    </div>
+
+    <div id="otab-expl" style="display:none">
+      <div class="expl" id="outExpl"></div>
+    </div>
+  </section>
+
+  <!-- REFERENCE -->
+  <section class="card">
+    <details class="ref">
+      <summary><span class="chev">▸</span> Khung Năng lực số dùng trong công cụ (tham khảo)</summary>
+      <div class="scheme">
+        <div><b>Cách đọc mã:</b> <span class="mono">[Miền].[Năng lực thành phần][Trình độ][Bậc][a/b/c…]</span></div>
+        <div style="margin-top:8px">Trình độ: <span class="lvltag">CB</span> Cơ bản (Tiểu học) &nbsp; <span class="lvltag">TC</span> Trung cấp (THCS) &nbsp; <span class="lvltag">NC</span> Nâng cao (THPT) &nbsp; <span class="lvltag">CS</span> Chuyên sâu (CĐ–ĐH)</div>
+        <div style="margin-top:8px">Ví dụ <span class="mono">1.1.NC1b</span> = Miền 1 › NL 1.1 (tìm kiếm & lọc) › Nâng cao/Bậc 5 › mô tả b = “Áp dụng kỹ thuật tìm kiếm để lấy dữ liệu, thông tin, nội dung số”.</div>
+      </div>
+      <div id="refMien"></div>
+    </details>
+  </section>
+</main>
+
+<footer>
+  Công cụ hỗ trợ soạn giáo án theo Chương trình GDPT 2018 và Khung năng lực số cho người học (Thông tư 02/2025/TT-BGDĐT). AI có thể sai sót — giáo viên cần rà soát trước khi sử dụng.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Dữ liệu Khung NLS (hiển thị + nhắc AI) ---------- */
+  var MIEN = [
+    {id:1, ten:"Khai thác dữ liệu và thông tin", mau:"#0E7C6B",
+     ntp:["1.1 Duyệt, tìm kiếm & lọc","1.2 Đánh giá dữ liệu/thông tin","1.3 Quản lý dữ liệu/thông tin"]},
+    {id:2, ten:"Giao tiếp và hợp tác", mau:"#2E7DA6",
+     ntp:["2.1 Tương tác","2.2 Chia sẻ","2.3 Trách nhiệm công dân số","2.4 Hợp tác","2.5 Ứng xử trên mạng","2.6 Quản lý danh tính số"]},
+    {id:3, ten:"Sáng tạo nội dung số", mau:"#7A57B8",
+     ntp:["3.1 Phát triển nội dung","3.2 Tích hợp & tái tạo","3.3 Bản quyền & giấy phép","3.4 Lập trình"]},
+    {id:4, ten:"An toàn", mau:"#B85C38",
+     ntp:["4.1 Bảo vệ thiết bị","4.2 Dữ liệu cá nhân & quyền riêng tư","4.3 Sức khỏe & an sinh số","4.4 Bảo vệ môi trường"]},
+    {id:5, ten:"Giải quyết vấn đề", mau:"#C08A1E",
+     ntp:["5.1 Vấn đề kỹ thuật","5.2 Nhu cầu & giải pháp công nghệ","5.3 Sử dụng sáng tạo","5.4 Tự cải thiện NLS"]},
+    {id:6, ten:"Ứng dụng trí tuệ nhân tạo (AI)", mau:"#2E9E82",
+     ntp:["6.1 Hiểu biết về AI","6.2 Sử dụng AI","6.3 Đánh giá AI"]}
+  ];
+
+  var NLS_DATA = [{"code": "1.1", "mien": 1, "name": "Duyệt, tìm kiếm và lọc dữ liệu, thông tin và nội dung số", "tc2": [["a", "Minh họa được nhu cầu thông tin."], ["b", "Tổ chức được tìm kiếm dữ liệu, thông tin và nội dung trong môi trường số."], ["c", "Mô tả được cách truy cập những dữ liệu, thông tin và nội dung này cũng như điều hướng giữa chúng."], ["d", "Tổ chức được các chiến lược tìm kiếm."]], "nc1": [["a", "Đáp ứng được nhu cầu thông tin."], ["b", "Áp dụng được kỹ thuật tìm kiếm để lấy được dữ liệu, thông tin và nội dung trong môi trường số."], ["c", "Chỉ cho người khác cách truy cập những dữ liệu, thông tin và nội dung này cũng như điều hướng giữa chúng."], ["d", "Tự đề xuất được chiến lược tìm kiếm."]]}, {"code": "1.2", "mien": 1, "name": "Đánh giá dữ liệu, thông tin và nội dung số", "tc2": [["a", "Thực hiện phân tích, so sánh và đánh giá được các nguồn dữ liệu, thông tin và nội dung số."], ["b", "Thực hiện phân tích, diễn giải và đánh giá được dữ liệu, thông tin và nội dung số."]], "nc1": [["a", "Thực hiện đánh giá được độ tin cậy và độ tin cậy của các nguồn dữ liệu, thông tin và nội dung số."], ["b", "Tiến hành đánh giá được các dữ liệu, thông tin và nội dung số khác nhau."]]}, {"code": "1.3", "mien": 1, "name": "Quản lý dữ liệu, thông tin và nội dung số", "tc2": [["a", "Sắp xếp được thông tin, dữ liệu, nội dung để dễ dàng lưu trữ và truy xuất."], ["b", "Tổ chức được thông tin, dữ liệu và nội dung trong một môi trường có cấu trúc."]], "nc1": [["a", "Thao tác được thông tin, dữ liệu và nội dung để tổ chức, lưu trữ và truy xuất dễ dàng hơn."], ["b", "Triển khai được việc tổ chức và sắp xếp dữ liệu, thông tin và nội dung trong môi trường có cấu trúc."]]}, {"code": "2.1", "mien": 2, "name": "Tương tác thông qua công nghệ số", "tc2": [["a", "Lựa chọn được nhiều công nghệ số để tương tác."], ["b", "Lựa chọn được nhiều phương tiện truyền thông số cho phù hợp với bối cảnh nhất định."]], "nc1": [["a", "Sử dụng được nhiều công nghệ số để tương tác."], ["b", "Cho người khác thấy phương tiện giao tiếp số phù hợp nhất cho một bối cảnh cụ thể."]]}, {"code": "2.2", "mien": 2, "name": "Chia sẻ thông tin và nội dung thông qua công nghệ số", "tc2": [["a", "Vận dụng được các công nghệ số phù hợp để chia sẻ dữ liệu, thông tin và nội dung số."], ["b", "Giải thích được cách đóng vai trò trung gian để chia sẻ thông tin và nội dung thông qua công nghệ số."], ["c", "Áp dụng được các phương pháp tham chiếu và ghi chú nguồn."]], "nc1": [["a", "Chia sẻ dữ liệu, thông tin và nội dung số thông qua nhiều công cụ số phù hợp."], ["b", "Hướng dẫn người khác cách đóng vai trò trung gian để chia sẻ thông tin và nội dung thông qua công nghệ số."], ["c", "Áp dụng được nhiều phương pháp tham chiếu và ghi nguồn khác nhau."]]}, {"code": "2.3", "mien": 2, "name": "Sử dụng công nghệ số để thực hiện trách nhiệm công dân", "tc2": [["a", "Lựa chọn được các dịch vụ số để tham gia vào xã hội."], ["b", "Thảo luận về các công nghệ số phù hợp để nâng cao năng lực của bản thân và tham gia vào xã hội với tư cách là một công."]], "nc1": [["a", "Đề xuất được các dịch vụ số khác nhau để tham gia vào xã hội."], ["b", "Sử dụng được các công nghệ số thích hợp để tự mình trang bị và tham gia vào xã hội như một công dân."]]}, {"code": "2.4", "mien": 2, "name": "Hợp tác thông qua công nghệ số", "tc2": [["a", "Lựa chọn được các công cụ và công nghệ số cho các quá trình hợp tác."]], "nc1": [["a", "Đề xuất được các công cụ và công nghệ số khác nhau cho các quá trình hợp tác."]]}, {"code": "2.5", "mien": 2, "name": "Quy tắc ứng xử trên mạng", "tc2": [["a", "Thảo luận về các chuẩn mực hành vi và cách sử dụng công nghệ số và tương tác trong môi trường số."], ["b", "Thảo luận các chiến lược giao tiếp phù hợp trong môi trường số."], ["c", "Thảo luận các khía cạnh đa dạng về văn hóa và thế hệ cần xem xét trong môi trường số."]], "nc1": [["a", "Áp dụng được các chuẩn mực hành vi và bí quyết khác nhau khi sử dụng công nghệ số và tương tác trong môi trường số."], ["b", "Áp dụng được các chiến lược giao tiếp khác nhau trong môi trường số một cách phù hợp."], ["c", "Áp dụng được các khía cạnh đa dạng về văn hóa và thế hệ khác nhau để xem xét trong môi trường số."]]}, {"code": "2.6", "mien": 2, "name": "Quản lý danh tính số", "tc2": [["a", "Hiển thị được nhiều danh tính số cụ thể."], ["b", "Thảo luận những cách cụ thể để bảo vệ danh tiếng trực tuyến của bản thân."], ["c", "Thao tác dữ liệu cá nhân tạo ra thông qua các công cụ, môi trường hoặc dịch vụ số."]], "nc1": [["a", "Sử dụng được nhiều danh tính số khác nhau."], ["b", "Áp dụng được các cách khác nhau để bảo vệ danh tính trực tuyến của bản thân."], ["c", "Sử dụng được dữ liệu tạo ra thông qua công cụ, môi trường và một số dịch vụ số."]]}, {"code": "3.1", "mien": 3, "name": "Phát triển nội dung số", "tc2": [["a", "Chỉ ra được cách tạo và chỉnh sửa nội dung ở các định dạng khác nhau."], ["b", "Thể hiện được bản thân thông qua việc tạo ra các nội dung số."]], "nc1": [["a", "Áp dụng được các cách tạo và chỉnh sửa nội dung ở các định dạng khác nhau."], ["b", "Chỉ ra được những cách thể hiện bản thân thông qua việc tạo ra các nội dung số."]]}, {"code": "3.2", "mien": 3, "name": "Tích hợp và tạo lập lại nội dung số", "tc2": [["a", "Thảo luận các cách sửa đổi, tinh chỉnh, cải thiện và tích hợp nội dung và thông tin mới để tạo ra những nội dung và thông tin mới và độc đáo."]], "nc1": [["a", "Làm việc với các mục nội dung và thông tin mới khác nhau, sửa đổi, tinh chỉnh, cải thiện và tích hợp chúng để tạo ra những mục mới và độc đáo."]]}, {"code": "3.3", "mien": 3, "name": "Thực thi bản quyền và giấy phép", "tc2": [["a", "Thảo luận các quy tắc về bản quyền và giấy phép áp dụng cho thông tin và nội dung số."]], "nc1": [["a", "Áp dụng được các quy định khác nhau về bản quyền và giấy phép cho dữ liệu, thông tin và nội dung số."]]}, {"code": "3.4", "mien": 3, "name": "Lập trình", "tc2": [["a", "Liệt kê được các hướng dẫn cho một hệ thống máy tính để giải quyết một vấn đề nhất định hoặc thực hiện một nhiệm vụ cụ thể."]], "nc1": [["a", "Tự thao tác được bằng các hướng dẫn dành cho hệ thống máy tính để giải quyết một vấn đề khác hoặc thực hiện các nhiệm vụ khác nhau."]]}, {"code": "4.1", "mien": 4, "name": "Bảo vệ thiết bị", "tc2": [["a", "Thiết lập được những cách thức bảo vệ thiết bị và nội dung số."], ["b", "Phân biệt được rủi ro và mối đe dọa trong môi trường số."], ["c", "Chọn lựa được các biện pháp an toàn và bảo mật."], ["d", "Giải thích được các cách thức để quan tâm đến mức độ tin cậy và quyền riêng tư."]], "nc1": [["a", "Áp dụng được các cách khác nhau để bảo vệ thiết bị và nội dung số."], ["b", "Nhận thức được sự đa dạng của các rủi ro và đe dọa trong môi trường số."], ["c", "Áp dụng được các biện pháp an toàn và bảo mật."], ["d", "Sử dụng được các cách thức khác nhau để quan tâm đến mức độ tin cậy và quyền riêng tư."]]}, {"code": "4.2", "mien": 4, "name": "Bảo vệ dữ liệu cá nhân và quyền riêng tư", "tc2": [["a", "Thảo luận về cách bảo vệ dữ liệu cá nhân và quyền riêng tư trong môi trường số."], ["b", "Thảo luận về cách sử dụng và chia sẻ thông tin định danh cá nhân một cách an toàn."], ["c", "Chỉ ra được các tuyên bố trong chính sách quyền riêng tư về cách sử dụng dữ liệu cá nhân trong các dịch vụ số."]], "nc1": [["a", "Áp dụng được các cách thức khác nhau để bảo vệ dữ liệu cá nhân và quyền riêng tư trong môi trường số."], ["b", "Áp dụng được các cách thức đặc thù để chia sẻ dữ liệu cá nhân một cách an toàn."], ["c", "Giải thích được các tuyên bố trong chính sách quyền riêng tư về cách sử dụng dữ liệu cá nhân trong các dịch vụ số."]]}, {"code": "4.3", "mien": 4, "name": "Bảo vệ sức khỏe và an sinh số", "tc2": [["a", "Giải thích được những cách thức để tránh những sự đe dọa liên quan đến việc sử dụng công nghệ số đối với sức khỏe thể chất và tinh thần."], ["b", "Lựa chọn được cách thức bảo vệ bản thân và người khác khỏi nguy cơ trong môi trường số."], ["c", "Thảo luận về những công nghệ số giúp tăng cường thịnh vượng xã hội và sự hòa hợp trong xã hội."]], "nc1": [["a", "Trình bày được các cách thức khác nhau để tránh rủi ro và đe dọa đến sức khỏe thể chất và tinh thần khi sử dụng công nghệ số."], ["b", "Áp dụng được các cách thức khác nhau để bảo vệ bản thân và người khác khỏi nguy cơ trong môi trường số."], ["c", "Trình bày được các công nghệ số khác nhau giúp tăng cường thịnh vượng xã hội và sự hòa hợp trong xã hội."]]}, {"code": "4.4", "mien": 4, "name": "Bảo vệ môi trường", "tc2": [["a", "Thảo luận về các cách thức bảo vệ môi trường khỏi tác động của công nghệ số và việc sử dụng công nghệ số."]], "nc1": [["a", "Trình bày được các cách thức khác nhau để bảo vệ môi trường khỏi tác động của công nghệ số và việc sử dụng công nghệ số."]]}, {"code": "5.1", "mien": 5, "name": "Giải quyết các vấn đề kỹ thuật", "tc2": [["a", "Phân biệt được các vấn đề kỹ thuật khi vận hành thiết bị và sử dụng môi trường số."], ["b", "Chọn được giải pháp cho chúng."]], "nc1": [["a", "Đánh giá được các vấn đề kỹ thuật khi sử dụng môi trường số và vận hành các thiết bị số."], ["b", "Áp dụng được các giải pháp khác nhau cho chúng."]]}, {"code": "5.2", "mien": 5, "name": "Xác định nhu cầu và giải pháp công nghệ", "tc2": [["a", "Giải thích nhu cầu cá nhân."], ["b", "Lựa chọn được các công cụ số và các giải pháp công nghệ có thể có để giải quyết những nhu cầu đó."], ["c", "Chọn được cách điều chỉnh và tùy chỉnh môi trường số theo nhu cầu cá nhân."]], "nc1": [["a", "Đánh giá được nhu cầu cá nhân."], ["b", "Áp dụng được các công cụ số khác nhau và các giải pháp công nghệ có thể có để giải quyết những nhu cầu đó."], ["c", "Sử dụng được các cách khác nhau để điều chỉnh và tùy chỉnh môi trường số theo nhu cầu cá nhân."]]}, {"code": "5.3", "mien": 5, "name": "Sử dụng sáng tạo công nghệ số", "tc2": [["a", "Phân biệt được các công cụ và công nghệ số có thể được sử dụng để tạo ra kiến thức và đổi mới quy trình và sản phẩm."], ["b", "Gắn kết được cá nhân và tập thể vào quá trình xử lý nhận thức để hiểu và giải quyết các vấn đề khái niệm và tình huống có vấn đề trong môi trường số."]], "nc1": [["a", "Áp dụng được các công cụ và công nghệ số khác nhau để tạo ra kiến thức cũng như các quy trình và sản phẩm đổi mới."], ["b", "Áp dụng xử lý nhận thức của cá nhân và tập thể để giải quyết các vấn đề khái niệm và tình huống có vấn đề khác nhau trong môi trường số."]]}, {"code": "5.4", "mien": 5, "name": "Xác định các vấn đề cần cải thiện về NLS", "tc2": [["a", "Thảo luận về lĩnh vực NLS của bản thân cần được cải thiện hoặc cập nhật."], ["b", "Chỉ ra được cách hỗ trợ người khác phát triển NLS của họ."], ["c", "Chỉ ra được nơi để tìm kiếm cơ hội phát triển bản thân và cập nhật sự phát triển công nghệ số."]], "nc1": [["a", "Chứng minh được NLS của tôi cần được cải thiện hoặc cập nhật ở đâu."], ["b", "Minh họa được những cách khác nhau để hỗ trợ người khác phát triển NLS của họ."], ["c", "Đề xuất được các cơ hội khác nhau để phát triển bản thân và cập nhật sự phát triển công nghệ số."]]}, {"code": "6.1", "mien": 6, "name": "Hiểu biết về trí tuệ nhân tạo", "tc2": [["a", "Áp dụng được các nguyên tắc cơ bản của AI để giải quyết vấn đề đơn giản."], ["b", "Thực hiện được các thao tác cơ bản trên các công cụ AI."]], "nc1": [["a", "Phân tích được cách AI hoạt động trong các ứng dụng cụ thể."], ["b", "So sánh được các hệ thống AI khác nhau và cách chúng xử lý dữ liệu."]]}, {"code": "6.2", "mien": 6, "name": "Sử dụng trí tuệ nhân tạo", "tc2": [["a", "Tối ưu hóa việc sử dụng các công cụ AI để đạt hiệu quả cao hơn."], ["b", "Quản lý được việc triển khai các công cụ AI trong các dự án nhỏ."], ["c", "Bảo vệ được dữ liệu cá nhân và tuân thủ các quy định pháp luật về bảo mật thông tin khi sử dụng AI."]], "nc1": [["a", "Phát triển được các ứng dụng AI tùy chỉnh để giải quyết các vấn đề cụ thể."], ["b", "Điều chỉnh được các hệ thống AI để phù hợp với nhu cầu cụ thể."], ["c", "Đánh giá và giảm thiểu được các rủi ro đạo đức và pháp lý liên quan đến việc sử dụng AI."]]}, {"code": "6.3", "mien": 6, "name": "Đánh giá trí tuệ nhân tạo", "tc2": [["a", "Phân tích được hiệu quả của hệ thống AI trong việc giải quyết các vấn đề cụ thể."], ["b", "So sánh được hiệu suất của các hệ thống AI khác nhau."]], "nc1": [["a", "Đánh giá được độ chính xác và tin cậy của các hệ thống AI."], ["b", "Xem xét được các kết quả và đưa ra nhận xét về hiệu quả của hệ thống AI."]]}];
+
+  function buildRefText(khoi){
+    var isTHCS = khoi==="THCS", suf = isTHCS?"TC2":"NC1", lk = isTHCS?"tc2":"nc1";
+    var label = isTHCS ? "TC2 (THCS, Trung cấp/Bậc 4)" : "NC1 (THPT, Nâng cao/Bậc 5)";
+    var out = "THAM CHIẾU ĐẦY ĐỦ MÃ NLS — chỉ dùng đúng bậc " + label + ":\n";
+    NLS_DATA.forEach(function(g){
+      var arr = g[lk] || [];
+      var parts = arr.map(function(d){ return g.code + suf + d[0] + " " + d[1]; });
+      out += "[" + g.code + " " + g.name + "] " + parts.join(" | ") + "\n";
+    });
+    out += "GỢI Ý CÔNG CỤ THEO MÔN: Toán→GeoGebra/Desmos, bảng tính, AI kiểm tra lời giải; Lý-Hóa-Sinh/KHTN→PhET, mô phỏng, bảng tính, AI; Ngữ văn→Canva, CapCut, AI hỗ trợ viết; Sử-Địa/KHXH→bản đồ số, Google Earth, Padlet; Ngoại ngữ→Quizlet, phần mềm luyện nói, AI hội thoại; Tin học→IDE, Scratch, AI; Công nghệ→Tinkercad/CAD, mô phỏng; GDCD/KT-PL→tình huống số, khảo sát online; Nghệ thuật→phần mềm vẽ/nhạc, AI tạo sinh.\n";
+    return out;
+  }
+
+  /* ---------- System prompt cho Gemini (kiến thức đã học) ---------- */
+  var SYSTEM_PROMPT =
+"Bạn là chuyên gia soạn Kế hoạch bài dạy (giáo án) theo Chương trình GDPT 2018 và là chuyên gia tích hợp Năng lực số (NLS) cho học sinh theo Khung năng lực số (Thông tư 02/2025/TT-BGDĐT).\n\n"+
+"KHUNG NLS: 6 miền năng lực, 24 năng lực thành phần, 4 trình độ (Cơ bản→Trung cấp→Nâng cao→Chuyên sâu) theo 8 bậc. Học sinh THCS đạt Trung cấp (Bậc 3–4), THPT đạt Nâng cao (Bậc 5–6).\n"+
+"HỆ MÃ: [Miền].[NL thành phần][Trình độ][Bậc][a/b/c…]. Trong công cụ này: THPT dùng mã dạng NC1x (Nâng cao, Bậc 5); THCS dùng mã dạng TC2x (Trung cấp, Bậc 4). Ví dụ 1.1.NC1b = Miền 1, NL 1.1, Nâng cao/Bậc 5, mô tả b.\n\n"+
+"[[REF]]\n\n"+
+"PHƯƠNG PHÁP TÍCH HỢP (bắt buộc tuân theo, đây là cách một giáo viên giỏi đã làm):\n"+
+"1) Mỗi mã NLS phải gắn với MỘT HÀNH ĐỘNG SỐ CÓ THẬT của học sinh trong bài (xem video/tìm kiếm, dùng phần mềm trắc nghiệm, dùng công cụ mô phỏng, tạo sản phẩm số, dùng/đánh giá AI…). Không gắn mã một cách hình thức, không bịa hoạt động phi thực tế.\n"+
+"2) Chèn NLS vào ĐÚNG BA VỊ TRÍ, và mã ở mục tiêu PHẢI KHỚP mã trong hoạt động:\n"+
+"   a. MỤC TIÊU → phần Phát triển năng lực: thêm tiểu mục 'Năng lực số' liệt kê các mã sẽ đạt trong bài, mỗi mã kèm mô tả đã diễn đạt theo ngữ cảnh bài.\n"+
+"   b. TIẾN TRÌNH DẠY HỌC: tại đúng bước học sinh thao tác số (thường là Bước 1 GV chuyển giao nhiệm vụ, hoặc cột Dự kiến sản phẩm), thêm câu mô tả nhiệm vụ số và ghi mã ngay tại đó.\n"+
+"   c. THIẾT BỊ DẠY HỌC & HỌC LIỆU: bổ sung công cụ/học liệu số dùng trong bài (video AI, phần mềm trắc nghiệm, PhET/GeoGebra…).\n"+
+"3) TÍCH HỢP TOÀN DIỆN, KHÔNG chỉ một năng lực: cài CÀNG NHIỀU năng lực thành phần phù hợp CÀNG TỐT, trải rộng qua NHIỀU MIỀN (nên phủ tối thiểu 4–5 trong 6 miền), miễn là TỰ NHIÊN với nội dung bài. Một giáo án đầy đủ thường có khoảng 8–15 điểm chạm NLS.\n"+
+"   - MỖI hoạt động (Khởi động, TỪNG phần Hình thành kiến thức, Luyện tập, Vận dụng) phải có ÍT NHẤT 1 điểm chạm; hoạt động lớn nên có 2–3.\n"+
+"   - Gợi ý phủ rộng theo miền: Miền 1 (tìm/đánh giá/quản lý thông tin) khi HS tra cứu tư liệu; Miền 2 (tương tác/chia sẻ/hợp tác) khi dùng phần mềm trắc nghiệm hoặc làm nhóm trên nền tảng số; Miền 3 (tạo sản phẩm số, bản quyền) ở Luyện tập/Vận dụng; Miền 4 (an toàn, quyền riêng tư, sức khỏe số) khi nhắc HS dùng thiết bị/mạng; Miền 5 (mô phỏng, giải pháp công nghệ) khi thí nghiệm ảo/xử lý số liệu; Miền 6 (dùng & đánh giá AI) khi có công cụ AI.\n"+
+"4) Chọn công cụ số phù hợp MÔN học (TỰ nhận diện môn từ nội dung; xem gợi ý theo môn ở trên).\n"+
+"5) CÂN BẰNG: phủ rộng nhưng KHÔNG gượng ép — không bịa hoạt động số phi thực tế chỉ để thêm mã; mỗi điểm chạm phải hợp lý về sư phạm.\n\n"+
+"NGUYÊN TẮC GIỮ NGUYÊN: KHÔNG xóa, KHÔNG rút gọn, KHÔNG làm sai lệch nội dung chuyên môn gốc. Chỉ THÊM phần NLS. Giữ nguyên cấu trúc, bảng biểu (2 cột Hoạt động/Sản phẩm), tiêu đề, thứ tự.\n"+
+"QUAN TRỌNG: Nếu gặp các mốc dạng [[HINH_1]], [[HINH_2]]… hãy GIỮ NGUYÊN đúng vị trí (đó là chỗ chèn hình ảnh gốc), tuyệt đối không xóa hay đổi.\n\n"+
+"ĐÁNH DẤU PHẦN THÊM (để người dùng nhìn thấy): mọi MÃ NLS bọc trong <span class=\"nls-tag\">1.1.NC1b</span>; mọi câu/nhiệm vụ do bạn thêm bọc trong <span class=\"nls-added\">...</span>.\n\n"+
+"ĐỊNH DẠNG ĐẦU RA: CHỈ trả về một đối tượng JSON hợp lệ, KHÔNG kèm giải thích ngoài JSON, KHÔNG dùng dấu ```:\n"+
+"{\n"+
+"  \"giaoan_html\": \"<toàn bộ giáo án ĐÃ tích hợp, dạng HTML: nội dung gốc giữ nguyên + phần NLS đã đánh dấu. Dùng <h1>/<h2>/<h3>, <p>, <ul>/<li>, <table><tr><td> giống bố cục gốc>\",\n"+
+"  \"giai_thich_html\": \"<HTML giải thích: (1) một <table> gồm cột Mã NLS | Vị trí trong bài | Hành động số của HS | Vì sao phù hợp; (2) đoạn tóm tắt ngắn cách tích hợp>\"\n"+
+"}\n"+
+"Toàn bộ bằng tiếng Việt. giaoan_html phải là bản HOÀN CHỈNH có thể dán vào Word.";
+
+  /* ---------- Tiện ích ---------- */
+  var $ = function(s){ return document.querySelector(s); };
+  function store(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  var state = { inputHtml:"", inputText:"", fileName:"", aiHtml:"", imgs:[] };
+
+  // Tách ảnh khỏi HTML để KHÔNG gửi base64 nặng sang AI; thay bằng mốc [[HINH_n]]
+  function stripImages(html){
+    var doc = new DOMParser().parseFromString("<div id='w'>"+html+"</div>","text/html");
+    var w = doc.getElementById("w"), imgs=[], n=0;
+    w.querySelectorAll("img").forEach(function(im){
+      n++; imgs.push(im.outerHTML);
+      im.parentNode.replaceChild(doc.createTextNode("[[HINH_"+n+"]]"), im);
+    });
+    return { html:w.innerHTML, imgs:imgs };
+  }
+  function restoreImages(html, imgs){
+    if(!imgs || !imgs.length) return html;
+    return html.replace(/\[\[HINH_(\d+)\]\]/g, function(m,i){
+      var idx=parseInt(i,10)-1; return (imgs[idx]!=null) ? imgs[idx] : "[hình ảnh]";
+    });
+  }
+  function estTokens(s){ return Math.round((s||"").length/4); }
+
+  /* ---------- Dựng phần tham khảo ---------- */
+  (function buildRef(){
+    var box = $("#refMien"), h="";
+    MIEN.forEach(function(m){
+      h += '<div class="mien"><h4><span class="dot" style="background:'+m.mau+'"></span>Miền '+m.id+'. '+m.ten+'</h4>';
+      NLS_DATA.filter(function(g){return g.mien===m.id;}).forEach(function(g){
+        h += '<div class="ntpb"><div class="ntpn">'+g.code+'. '+g.name+'</div><div class="lvlpair">';
+        h += '<div class="lvlcol"><span class="lvh">THPT · NC1</span>'+g.nc1.map(function(d){return '<div class="cd"><b>'+g.code+'NC1'+d[0]+'</b> '+d[1]+'</div>';}).join('')+'</div>';
+        h += '<div class="lvlcol"><span class="lvh">THCS · TC2</span>'+g.tc2.map(function(d){return '<div class="cd"><b>'+g.code+'TC2'+d[0]+'</b> '+d[1]+'</div>';}).join('')+'</div>';
+        h += '</div></div>';
+      });
+      h += '</div>';
+    });
+    box.innerHTML = h;
+  })();
+
+  /* ---------- Key: nạp & lưu ---------- */
+  (function initKey(){
+    var saved = load("nls_key");
+    if(saved){ $("#apiKey").value = saved; $("#remember").checked = true; }
+    var m = load("nls_model"); if(m){ $("#model").value = m; }
+    updateKeyState();
+  })();
+  function updateKeyState(){
+    var has = $("#apiKey").value.trim().length > 10;
+    var el = $("#keyState");
+    el.textContent = has ? "API key đã nhập" : "Chưa có API key";
+    el.style.color = has ? "var(--teal-d)" : "";
+  }
+  $("#apiKey").addEventListener("input", function(){
+    updateKeyState();
+    if($("#remember").checked) store("nls_key", $("#apiKey").value.trim());
+  });
+  $("#remember").addEventListener("change", function(){
+    if(this.checked) store("nls_key", $("#apiKey").value.trim()); else del("nls_key");
+  });
+  $("#model").addEventListener("change", function(){ store("nls_model", this.value); });
+  $("#clearKey").addEventListener("click", function(e){
+    e.preventDefault(); del("nls_key"); $("#apiKey").value=""; $("#remember").checked=false; updateKeyState();
+  });
+
+  /* ---------- Tabs nhập ---------- */
+  document.querySelectorAll(".tab[data-tab]").forEach(function(t){
+    t.addEventListener("click", function(){
+      document.querySelectorAll(".tab[data-tab]").forEach(function(x){ x.classList.remove("on"); });
+      t.classList.add("on");
+      var v = t.getAttribute("data-tab");
+      $("#tab-upload").style.display = v==="upload" ? "" : "none";
+      $("#tab-paste").style.display  = v==="paste"  ? "" : "none";
+    });
+  });
+
+  /* ---------- Nhập bằng dán ---------- */
+  $("#pasteBox").addEventListener("input", function(){
+    var txt = this.value;
+    state.inputText = txt;
+    // chuyển văn bản thô -> HTML đơn giản (giữ đoạn)
+    var html = txt.split(/\n{2,}/).map(function(p){
+      return "<p>"+esc(p).replace(/\n/g,"<br>")+"</p>";
+    }).join("");
+    state.inputHtml = html;
+    state.aiHtml = html;
+    state.imgs = [];
+    renderPreview(html, txt.length);
+  });
+
+  /* ---------- Nhập bằng file .docx ---------- */
+  var drop = $("#drop"), fileInput = $("#file");
+  drop.addEventListener("click", function(){ fileInput.click(); });
+  ["dragenter","dragover"].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add("hot"); }); });
+  ["dragleave","drop"].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove("hot"); }); });
+  drop.addEventListener("drop", function(e){ var f = e.dataTransfer.files[0]; if(f) handleFile(f); });
+  fileInput.addEventListener("change", function(){ if(this.files[0]) handleFile(this.files[0]); });
+
+  function handleFile(f){
+    if(!/\.docx$/i.test(f.name)){ showAlert("Chỉ hỗ trợ file .docx. Với .doc cũ, hãy mở bằng Word rồi Lưu thành .docx, hoặc dùng ô Dán văn bản."); return; }
+    if(typeof window.mammoth === "undefined"){
+      showAlert("Chưa tải được thư viện đọc .docx (lần đầu cần Internet). Bạn có thể chuyển sang tab <b>Dán văn bản</b> để dán nội dung giáo án.");
+      return;
+    }
+    hideAlert();
+    var reader = new FileReader();
+    reader.onload = function(){
+      window.mammoth.convertToHtml({arrayBuffer: reader.result})
+        .then(function(res){
+          var full = res.value || "";
+          var s = stripImages(full);
+          state.inputHtml = full;        // xem trước: có ảnh
+          state.aiHtml    = s.html;      // gửi AI: ảnh -> [[HINH_n]]
+          state.imgs      = s.imgs;
+          state.inputText = (s.html.replace(/<[^>]+>/g," ")).replace(/\s+/g," ").trim();
+          state.fileName  = f.name;
+          $("#fileName").textContent = f.name;
+          $("#fileMeta").textContent = " · " + Math.round(f.size/1024) + " KB · " + s.imgs.length + " hình";
+          $("#fileChip").style.display = "flex";
+          renderPreview(full, state.inputText.length);
+        })
+        .catch(function(err){ showAlert("Không đọc được file: " + (err.message||err)); });
+    };
+    reader.readAsArrayBuffer(f);
+  }
+
+  function renderPreview(html, len){
+    $("#inPreview").innerHTML = html;
+    var est = estTokens(state.aiHtml || html);
+    var warn = est>230000 ? " — ⚠ vượt hạn mức gói miễn phí, hãy chia nhỏ giáo án"
+             : (est>120000 ? " (khá lớn)" : "");
+    $("#inMeta").innerHTML = (len ? ("Đã nhận ~" + len.toLocaleString("vi-VN") + " ký tự · ") : "")
+      + "ước tính ~" + est.toLocaleString("vi-VN") + " token gửi AI" + warn;
+  }
+
+  /* ---------- Trạng thái/thông báo ---------- */
+  function setStatus(on, txt){ $("#status").style.display = on ? "flex":"none"; if(txt) $("#statusText").textContent = txt; }
+  function showAlert(msg){ var a=$("#alert"); a.innerHTML = msg; a.style.display="block"; }
+  function hideAlert(){ $("#alert").style.display="none"; }
+
+  /* ---------- Gọi Gemini ---------- */
+  $("#run").addEventListener("click", runIntegrate);
+
+  function runIntegrate(){
+    hideAlert();
+    var key = $("#apiKey").value.trim();
+    if(key.length < 10){ showAlert("Vui lòng nhập API key Gemini ở Bước 1. Xem hướng dẫn lấy key nếu chưa có."); return; }
+    if(!state.inputHtml || state.inputText.length < 40){ showAlert("Chưa có nội dung giáo án. Hãy tải file .docx hoặc dán văn bản ở Bước 2."); return; }
+
+    var model = $("#model").value;
+    var khoi  = $("#khoi").value;
+    var maLevel = khoi==="THCS" ? "TC2 (Trung cấp/Bậc 4)" : "NC1 (Nâng cao/Bậc 5)";
+
+    var est = estTokens(state.aiHtml);
+    if(est > 230000){
+      showAlert("Giáo án quá lớn (~"+est.toLocaleString("vi-VN")+" token) so với hạn mức gói miễn phí (250.000 token/phút). Hãy chia nhỏ giáo án — mỗi lần chỉ 1 bài — rồi chạy lại.");
+      return;
+    }
+
+    var userMsg =
+      "Đây là giáo án CHƯA tích hợp năng lực số.\n"+
+      "Cấp học: "+khoi+" → dùng mã "+maLevel+".\n"+
+      "Hãy TỰ nhận diện môn học từ nội dung, rồi tích hợp năng lực số vào TOÀN BỘ giáo án MỘT CÁCH TOÀN DIỆN (phủ nhiều miền, mỗi hoạt động ít nhất 1 điểm chạm) theo đúng phương pháp đã quy định, và trả về JSON đúng định dạng.\n\n"+
+      "===== GIÁO ÁN GỐC (HTML) =====\n" + state.aiHtml;
+
+    var body = {
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT.replace("[[REF]]", buildRefText(khoi)) }] },
+      contents: [{ role:"user", parts:[{ text: userMsg }] }],
+      generationConfig: { temperature:0.4, maxOutputTokens:32768, responseMimeType:"application/json" }
+    };
+
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent?key="+encodeURIComponent(key);
+
+    $("#run").disabled = true;
+    setStatus(true, "Đang gửi giáo án cho AI và cài năng lực số… (có thể mất 20–60 giây)");
+
+    fetch(url, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(body)
+    })
+    .then(function(res){ return res.json().then(function(j){ return {ok:res.ok, status:res.status, j:j}; }); })
+    .then(function(r){
+      if(!r.ok){
+        var m = (r.j && r.j.error && r.j.error.message) ? r.j.error.message : ("Lỗi HTTP "+r.status);
+        throw new Error(m);
+      }
+      var cand = r.j.candidates && r.j.candidates[0];
+      if(!cand){
+        var bf = r.j.promptFeedback && r.j.promptFeedback.blockReason;
+        throw new Error(bf ? ("Yêu cầu bị chặn ("+bf+"). Thử lại hoặc đổi nội dung.") : "AI không trả về kết quả.");
+      }
+      var parts = (cand.content && cand.content.parts) || [];
+      var text = parts.map(function(p){ return p.text||""; }).join("");
+      if(!text.trim()) throw new Error("AI trả về rỗng. Thử lại hoặc đổi model.");
+      var data = parseJson(text);
+      if(!data || !data.giaoan_html){
+        // fallback: hiển thị thô
+        renderResult(text, "<p>Không tách được phần giải thích. Nội dung trên là kết quả thô từ AI.</p>");
+      } else {
+        renderResult(data.giaoan_html, data.giai_thich_html || "<p>(AI không kèm giải thích.)</p>");
+      }
+      if(cand.finishReason === "MAX_TOKENS"){
+        showAlert("Lưu ý: giáo án dài nên kết quả có thể bị cắt. Hãy chia nhỏ giáo án rồi chạy từng phần.");
+      }
+    })
+    .catch(function(err){
+      var msg = err.message||String(err), low = msg.toLowerCase(), hint;
+      if(low.indexOf("quota")>=0 || low.indexOf("exceeded")>=0 || low.indexOf("resource_exhausted")>=0 || low.indexOf("rate limit")>=0 || low.indexOf("429")>=0){
+        hint = "Đây là <b>giới hạn của gói MIỄN PHÍ</b> (không phải lỗi key). Cách xử lý: đợi ~30 giây rồi thử lại; chia nhỏ giáo án (mỗi lần 1 bài); hoặc bật thanh toán trong Google AI Studio để nâng hạn mức.";
+      } else if(low.indexOf("api key")>=0 || low.indexOf("api_key")>=0 || low.indexOf("permission")>=0 || low.indexOf("invalid")>=0){
+        hint = "Có thể key sai hoặc chưa kích hoạt. Kiểm tra lại API key ở Bước 1.";
+      } else if(low.indexOf("not found")>=0 || low.indexOf("404")>=0){
+        hint = "Model không khả dụng với key này — hãy chọn model khác ở Bước 1.";
+      } else {
+        hint = "Thử lại khi mạng ổn định, hoặc chọn model khác.";
+      }
+      showAlert("<b>Không xử lý được.</b> " + esc(msg) + "<br><span style='color:var(--muted)'>"+hint+"</span>");
+    })
+    .finally(function(){
+      $("#run").disabled = false;
+      setStatus(false);
+    });
+  }
+
+  function parseJson(text){
+    var t = text.trim().replace(/^```(json)?/i,"").replace(/```$/,"").trim();
+    try{ return JSON.parse(t); }catch(e){}
+    var a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if(a>=0 && b>a){ try{ return JSON.parse(t.slice(a,b+1)); }catch(e2){} }
+    return null;
+  }
+
+  /* ---------- Hiển thị kết quả ---------- */
+  function renderResult(giaoanHtml, giaiThichHtml){
+    $("#outDoc").innerHTML = restoreImages(giaoanHtml, state.imgs);
+    $("#outExpl").innerHTML = giaiThichHtml;
+    $("#outWrap").style.display = "block";
+    applyHighlight();
+    $("#outWrap").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+  function applyHighlight(){ document.body.classList.toggle("hl", $("#hlToggle").checked); }
+  $("#hlToggle").addEventListener("change", applyHighlight);
+
+  /* Tabs kết quả */
+  document.querySelectorAll(".tab[data-otab]").forEach(function(t){
+    t.addEventListener("click", function(){
+      document.querySelectorAll(".tab[data-otab]").forEach(function(x){ x.classList.remove("on"); });
+      t.classList.add("on");
+      var v = t.getAttribute("data-otab");
+      $("#otab-doc").style.display  = v==="doc"  ? "" : "none";
+      $("#otab-expl").style.display = v==="expl" ? "" : "none";
+    });
+  });
+
+  /* ---------- Xuất Word ---------- */
+  $("#download").addEventListener("click", function(){
+    var src = $("#outDoc");
+    if(!src.innerHTML.trim()){ return; }
+    var keepHl = $("#hlInWord").checked;
+    var doc = new DOMParser().parseFromString("<div id='r'>"+src.innerHTML+"</div>", "text/html");
+    var root = doc.getElementById("r");
+
+    // Chuẩn hóa style nội tuyến để Word hiển thị đúng
+    root.querySelectorAll("table").forEach(function(tb){
+      tb.setAttribute("style","border-collapse:collapse;width:100%;"+(tb.getAttribute("style")||""));
+    });
+    root.querySelectorAll("td,th").forEach(function(td){
+      td.setAttribute("style","border:1px solid #444;padding:6px 8px;vertical-align:top;"+(td.getAttribute("style")||""));
+    });
+    root.querySelectorAll(".nls-tag").forEach(function(s){
+      s.setAttribute("style", keepHl
+        ? "font-weight:700;background:#FBEFD7;padding:0 3px;border:1px solid #EBC98A;"
+        : "font-weight:700;");
+    });
+    root.querySelectorAll(".nls-added").forEach(function(s){
+      s.setAttribute("style", keepHl ? "background:#FFF7E9;" : "");
+    });
+
+    var css = "body{font-family:'Times New Roman',serif;font-size:13pt;line-height:1.5;}"+
+              "h1{font-size:15pt;} h2{font-size:14pt;} h3{font-size:13pt;} "+
+              "table{border-collapse:collapse;} td,th{border:1px solid #444;padding:6px;} p{margin:6px 0;}";
+    var html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>"+
+      "<head><meta charset='utf-8'><title>Giáo án tích hợp NLS</title>"+
+      "<style>"+css+"</style></head><body>"+ root.innerHTML +"</body></html>";
+
+    var blob = new Blob(["\ufeff", html], {type:"application/msword"});
+    var a = document.createElement("a");
+    var base = (state.fileName ? state.fileName.replace(/\.docx?$/i,"") : "Giao_an") ;
+    a.href = URL.createObjectURL(blob);
+    a.download = base + "_tich_hop_NLS.doc";
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  });
+
+})();
+</script>
+</body>
+</html>
